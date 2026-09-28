@@ -154,6 +154,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   renderAll();
 
+  // Restore last active tab after refresh
+  const savedTab = sessionStorage.getItem('khoj_active_tab');
+  if (savedTab) {
+    switchTab(savedTab);
+  }
+
   // Expose to window for inline onclick handlers
   window.AppAPI = {
     network,
@@ -193,6 +199,10 @@ function switchTab(tabId) {
       tab.classList.remove('active');
     }
   });
+
+  // Persist so refresh lands on the same tab
+  sessionStorage.setItem('khoj_active_tab', tabId);
+
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
