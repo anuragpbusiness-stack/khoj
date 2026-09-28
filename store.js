@@ -16,7 +16,8 @@ class SharedStore {
       books: [],
       people: [],
       events: [],
-      circles: []
+      circles: [],
+      chat: []
     };
 
     this.loadLocal();
@@ -428,6 +429,35 @@ class SharedStore {
     }
     this.state.circles = (this.state.circles || []).filter(c => c.id !== id);
     this.state.feed = (this.state.feed || []).filter(f => f.id !== id && f.feedItemId !== id);
+    this.broadcastUpdate();
+    return true;
+  }
+
+  // Chat mutations
+  sendChatMessage(text, context) {
+    if (!this.state.chat) this.state.chat = [];
+    const myUid = this.getUserId();
+    const msgId = 'chat_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+    const msg = {
+      id: msgId,
+      text: text || '',
+      ownerId: myUid,
+      timestamp: Date.now(),
+      context: context || null  // { type, title, id } — optional reference to an upload
+    };
+    this.state.chat.push(msg);
+    // Keep last 200 messages only
+    if (this.state.chat.length > 200) {
+      this.state.chat = this.state.chat.slice(-200);
+    }
+    this.broadcastUpdate();
+    return msg;
+  }
+
+  deleteChatMessage(id) {
+    const msg = (this.state.chat || []).find(m => m.id === id);
+    if (msg && !this.canDelete(msg)) return false;
+    this.state.chat = (this.state.chat || []).filter(m => m.id !== id);
     this.broadcastUpdate();
     return true;
   }

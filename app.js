@@ -144,6 +144,8 @@ document.addEventListener('DOMContentLoaded', () => {
     renderEvents(store.state);
     renderLiveIdeaWall(store.state);
     renderCircles(store.state);
+    renderChat(store.state);
+    renderChatContextList(store.state);
   }
 
   store.onChange(() => {
@@ -158,6 +160,22 @@ document.addEventListener('DOMContentLoaded', () => {
     store,
     showToast
   };
+
+  // Chat keyboard shortcut: Enter to send, Shift+Enter for newline
+  const chatInput = document.getElementById('chat-text-input');
+  if (chatInput) {
+    chatInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendChatMsg();
+      }
+    });
+    // Auto-resize textarea
+    chatInput.addEventListener('input', () => {
+      chatInput.style.height = 'auto';
+      chatInput.style.height = Math.min(chatInput.scrollHeight, 140) + 'px';
+    });
+  }
 });
 
 // Tab Switcher
@@ -1137,5 +1155,213 @@ function deleteCircle(id) {
   } else {
     window.AppAPI.showToast('⚠️ Only the creator can remove their circle.');
   }
+}
+
+// ============================================================
+// CHAT — State, Renderer & Interactions
+// ============================================================
+
+// Tracks the currently selected context item { type, title, id }
+let _chatContext = null;
+
+// ---- Render chat messages ----
+function renderChat(state) {
+  const container = document.getElementById('chat-messages-area');
+  if (!container) return;
+
+  const store = window.AppAPI ? window.AppAPI.store : null;
+  const myUid = store ? store.getUserId() : '';
+  const messages = (state.chat || []);
+
+  if (messages.length === 0) {
+    container.innerHTML = `
+      <div class="chat-empty-state">
+        <div class="chat-empty-icon">✦</div>
+        <div class="chat-empty-title">Start the Conversation</div>
+        <div class="chat-empty-sub">Send a message below. Attach any upload from the sidebar as context — your partner sees it live in real-time.</div>
+      </div>
+    `;
+    return;
+  }
+
+  let html = '';
+  let lastDateStr = null;
+
+  messages.forEach(msg => {
+    const isMine = !msg.ownerId || msg.ownerId === myUid;
+    const side = isMine ? 'mine' : 'theirs';
+    const authorLabel = isMine ? 'YOU' : 'PARTNER';
+
+    const dateObj = new Date(msg.timestamp);
+    const dateStr = dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
+    const timeStr = dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+
+    // Date divider
+    if (dateStr !== lastDateStr) {
+      lastDateStr = dateStr;
+      html += `<div class="chat-date-divider"><span>${dateStr}</span></div>`;
+    }
+
+    // Context reference block
+    let ctxHtml = '';
+    if (msg.context) {
+      const icons = { 'PODCAST': '🎙️', 'BOOK': '📚', 'IDEA': '💡', 'PERSON': '👤', 'EVENT': '📍', 'NOTE': '📌' };
+      const icon = icons[msg.context.type] || '↗';
+      ctxHtml = `
+        <div class="chat-msg-context">
+          <span class="chat-msg-context-type">${icon} ${msg.context.type}</span>
+          <span class="chat-msg-context-title">${escapeHtml(msg.context.title)}</span>
+        </div>
+      `;
+    }
+
+    // Delete button (own messages only)
+    const delBtn = isMine
+      ? `<button class="delete-msg-btn" onclick="deleteChatMsg('${msg.id}')" title="Delete">✕</button>`
+      : '';
+
+    html += `
+      <div class="chat-message-group ${side}">
+        <div class="chat-meta-row">
+          <span class="chat-author-label ${side}">${authorLabel}</span>
+          <span class="chat-timestamp">${timeStr}</span>
+        </div>
+        ${ctxHtml}
+        <div class="chat-bubble ${side}">
+          ${escapeHtml(msg.text)}
+          ${delBtn}
+        </div>
+      </div>
+    `;
+  });
+
+  const wasAtBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 60;
+  container.innerHTML = html;
+  if (wasAtBottom) {
+    container.scrollTop = container.scrollHeight;
+  }
+}
+
+// ---- Render sidebar context list ----
+function renderChatContextList(state) {
+  const container = document.getElementById('chat-context-list');
+  if (!container) return;
+
+  const typeConfig = [
+    { key: 'podcasts', type: 'PODCAST', icon: '🎙️', titleFn: p => p.title },
+    { key: 'books',    type: 'BOOK',    icon: '📚', titleFn: b => b.title },
+    { key: 'people',   type: 'PERSON',  icon: '👤', titleFn: p => p.name },
+    { key: 'events',   type: 'EVENT',   icon: '📍', titleFn: e => e.title },
+    {
+      key: 'vision', type: 'IDEA', icon: '💡',
+      titleFn: v => v.title,
+      filterFn: v => v.category === 'Atomic Idea'
+    },
+    {
+      key: 'vision', type: 'NOTE', icon: '📌',
+      titleFn: v => v.title,
+      filterFn: v => v.category === 'Wall Note' || !v.category
+    }
+  ];
+
+  let html = '';
+  typeConfig.forEach(cfg => {
+    const items = (state[cfg.key] || []).filter(cfg.filterFn || (() => true));
+    items.slice(0, 12).forEach(item => {
+      const title = cfg.titleFn(item);
+      const isSelected = _chatContext && _chatContext.id === item.id;
+      html += `
+        <div class="chat-context-item ${isSelected ? 'selected' : ''}" onclick="attachChatContext('${cfg.type}', '${escapeAttr(title)}', '${item.id}')">
+          <span class="chat-context-item-icon">${cfg.icon}</span>
+          <div class="chat-context-item-body">
+            <div class="chat-context-item-type">${cfg.type}</div>
+            <div class="chat-context-item-title">${escapeHtml(title)}</div>
+          </div>
+        </div>
+      `;
+    });
+  });
+
+  if (!html) {
+    html = `<div style="padding: 16px 14px; font-family: var(--font-mono); font-size: 10px; color: var(--text-tertiary); line-height: 1.6;">Upload podcasts, books, ideas, people, or events and they'll appear here as context options.</div>`;
+  }
+
+  container.innerHTML = html;
+}
+
+// ---- Attach a context item from the sidebar ----
+function attachChatContext(type, title, id) {
+  _chatContext = { type, title, id };
+
+  // Update sidebar preview
+  const preview = document.getElementById('chat-context-preview');
+  const typeLabel = document.getElementById('chat-context-type-label');
+  const titleLabel = document.getElementById('chat-context-title-label');
+  if (preview) preview.style.display = 'block';
+  if (typeLabel) typeLabel.textContent = type;
+  if (titleLabel) titleLabel.textContent = title;
+
+  // Update input bar
+  const bar = document.getElementById('chat-context-bar');
+  const barLabel = document.getElementById('chat-context-bar-label');
+  if (bar) bar.style.display = 'flex';
+  if (barLabel) barLabel.textContent = `${type}: ${title}`;
+
+  // Re-render sidebar to mark selected
+  if (window.AppAPI) renderChatContextList(window.AppAPI.store.state);
+
+  // Focus input
+  const input = document.getElementById('chat-text-input');
+  if (input) input.focus();
+}
+
+// ---- Clear selected context ----
+function clearChatContext() {
+  _chatContext = null;
+
+  const preview = document.getElementById('chat-context-preview');
+  if (preview) preview.style.display = 'none';
+
+  const bar = document.getElementById('chat-context-bar');
+  if (bar) bar.style.display = 'none';
+
+  if (window.AppAPI) renderChatContextList(window.AppAPI.store.state);
+}
+
+// ---- Send a message ----
+function sendChatMsg() {
+  const input = document.getElementById('chat-text-input');
+  if (!input) return;
+  const text = input.value.trim();
+  if (!text) return;
+
+  window.AppAPI.store.sendChatMessage(text, _chatContext || null);
+
+  input.value = '';
+  input.style.height = 'auto';
+
+  // Clear context after sending
+  clearChatContext();
+}
+
+// ---- Delete own message ----
+function deleteChatMsg(id) {
+  const ok = window.AppAPI.store.deleteChatMessage(id);
+  if (!ok) window.AppAPI.showToast('⚠️ You can only delete your own messages.');
+}
+
+// ---- Utility: HTML escape ----
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function escapeAttr(str) {
+  if (!str) return '';
+  return String(str).replace(/'/g, "\\'").replace(/"/g, '&quot;');
 }
 

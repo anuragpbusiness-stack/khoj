@@ -57,7 +57,7 @@
     <button class="nav-tab" data-tab="books">Books & Canon</button>
     <button class="nav-tab" data-tab="events">Events & Posters</button>
     <button class="nav-tab" data-tab="ideawall">✦ Live Idea Wall</button>
-    <button class="nav-tab" data-tab="circles">Circles</button>
+    <button class="nav-tab" data-tab="chat">✦ Chat</button>
   </nav>
 
   <!-- Main Content Wrapper -->
@@ -191,21 +191,47 @@
       </div>
     </section>
 
-    <!-- 8. CIRCLES TAB -->
-    <section id="tab-circles" class="tab-section" style="display: none;">
-      <div class="editorial-heading-group" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 14px;">
-        <div>
-          <span class="sub-tag">SELECTIVE COMMUNITIES</span>
-          <h2 class="huge-headline">CURATED CIRCLES</h2>
-          <p style="font-family: var(--font-serif); font-size: 17px; font-style: italic; color: var(--muted-white); margin-top: 4px;">
-            Private, curated rooms for domain builders. Focused conversations without algorithmic noise.
-          </p>
-        </div>
-        <button class="btn-primary" onclick="openAddModal('circle')">+ CREATE CIRCLE</button>
-      </div>
+    <!-- 8. CHAT TAB -->
+    <section id="tab-chat" class="tab-section" style="display: none;">
+      <div class="chat-shell">
 
-      <div class="editorial-grid" id="circles-grid">
-        <!-- Rendered by JS -->
+        <!-- Left: Context Picker Sidebar -->
+        <aside class="chat-sidebar">
+          <div class="chat-sidebar-header">
+            <span class="sub-tag">REFERENCE</span>
+            <h4 style="font-family: var(--font-display); font-size: 15px; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; color: var(--text-primary);">Highlight Context</h4>
+            <p style="font-family: var(--font-mono); font-size: 10px; color: var(--text-tertiary); margin-top: 6px; line-height: 1.5;">Tap any upload to attach it as context to your next message.</p>
+          </div>
+          <div id="chat-context-list" class="chat-context-list">
+            <!-- Rendered by JS -->
+          </div>
+          <div id="chat-context-preview" class="chat-context-preview" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <span class="sub-tag" id="chat-context-type-label">PODCAST</span>
+              <button onclick="clearChatContext()" style="background:none;border:none;color:var(--text-tertiary);cursor:pointer;font-size:14px;font-weight:700;">✕</button>
+            </div>
+            <div id="chat-context-title-label" style="font-family: var(--font-display); font-size: 13px; text-transform: uppercase; margin-top: 6px; color: var(--text-primary); letter-spacing: 0.3px;"></div>
+          </div>
+        </aside>
+
+        <!-- Right: Chat Window -->
+        <div class="chat-window">
+          <div class="chat-messages-area" id="chat-messages-area">
+            <!-- Rendered by JS -->
+          </div>
+          <div class="chat-input-area">
+            <div id="chat-context-bar" class="chat-context-bar" style="display: none;">
+              <span style="font-family: var(--font-mono); font-size: 10px; color: var(--deep-green);">↗ CONTEXT:</span>
+              <span id="chat-context-bar-label" style="font-family: var(--font-mono); font-size: 10px; color: var(--text-secondary); margin-left: 6px;"></span>
+              <button onclick="clearChatContext()" style="background:none;border:none;color:var(--text-tertiary);cursor:pointer;font-size:12px;font-weight:700;margin-left: auto;">✕</button>
+            </div>
+            <div class="chat-input-row">
+              <textarea id="chat-text-input" class="chat-textarea" placeholder="Type a message... (Enter to send, Shift+Enter for newline)" rows="1"></textarea>
+              <button class="chat-send-btn" onclick="sendChatMsg()">SEND ↑</button>
+            </div>
+          </div>
+        </div>
+
       </div>
     </section>
 
@@ -334,9 +360,9 @@
 
   <!-- Core Scripts -->
   <script src="mqtt.min.js"></script>
-  <script src="data.js?v=5.1"></script>
-  <script src="network.js?v=5.1"></script>
-  <script src="store.js?v=5.1"></script>
-  <script src="app.js?v=5.1"></script>
+  <script src="data.js?v=5.2"></script>
+  <script src="network.js?v=5.2"></script>
+  <script src="store.js?v=5.2"></script>
+  <script src="app.js?v=5.2"></script>
 </body>
 </html>
