@@ -196,8 +196,13 @@ function renderFeed(state) {
     return;
   }
 
+  const store = window.AppAPI ? window.AppAPI.store : null;
+  const myUid = store ? store.getUserId() : '';
+
   container.innerHTML = posts.map(item => {
-    const isPartner = item.author === 'Partner';
+    const isOwner = !item.ownerId || item.ownerId === myUid;
+    const authorLabel = isOwner ? 'YOU' : 'PARTNER';
+    const authorClass = isOwner ? '' : 'partner';
     const itemType = (item.type || item.tag || 'DISPATCH').toUpperCase();
     
     const dateObj = new Date(item.timestamp || Date.now());
@@ -212,7 +217,7 @@ function renderFeed(state) {
       <article class="feed-card">
         <div class="feed-card-header">
           <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-            <span class="feed-author-badge ${isPartner ? 'partner' : ''}">${item.author.toUpperCase()}</span>
+            <span class="feed-author-badge ${authorClass}">${authorLabel}</span>
             <span class="tag-badge">${itemType}</span>
             <span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-tertiary);">${metaInfo}</span>
           </div>
@@ -230,9 +235,9 @@ function renderFeed(state) {
 
         <div class="feed-footer">
           <span style="color: var(--deep-green); font-weight: 600;">● SYNCED LIVE</span>
-          <div style="display: flex; gap: 8px;">
+          <div style="display: flex; gap: 8px; align-items: center;">
             <button class="btn-secondary" style="padding: 4px 10px; font-size: 11px;" onclick="pinToWall('${itemType}', '${(titleText + ' - ' + bodyText).replace(/'/g, "\\'")}')">PIN TO WALL</button>
-            <button style="background:none; border:none; color: var(--text-tertiary); font-weight:700; cursor:pointer;" onclick="deleteFeedPost('${item.id}')">✕</button>
+            ${isOwner ? `<button style="background:none; border:none; color: var(--text-tertiary); font-weight:700; cursor:pointer;" onclick="deleteFeedPost('${item.id}')" title="Delete your post">✕</button>` : `<span style="font-family: var(--font-mono); font-size: 10px; color: var(--text-tertiary); opacity: 0.6;">FROM PARTNER</span>`}
           </div>
         </div>
       </article>
@@ -241,8 +246,12 @@ function renderFeed(state) {
 }
 
 function deleteFeedPost(id) {
-  window.AppAPI.store.removeFeedPost(id);
-  window.AppAPI.showToast('Dispatch removed from feed');
+  const ok = window.AppAPI.store.removeFeedPost(id);
+  if (ok) {
+    window.AppAPI.showToast('Dispatch removed from feed');
+  } else {
+    window.AppAPI.showToast('⚠️ Only the uploader can remove their post.');
+  }
 }
 
 // 2. Conversations & Podcasts Render
@@ -265,11 +274,16 @@ function renderConversations(state) {
     return;
   }
 
-  const userHtml = userPodcasts.map(p => `
+  const store = window.AppAPI ? window.AppAPI.store : null;
+  const myUid = store ? store.getUserId() : '';
+
+  const userHtml = userPodcasts.map(p => {
+    const isOwner = !p.ownerId || p.ownerId === myUid;
+    return `
     <article class="conversation-card">
       <div class="card-top-tag">
-        <span class="tag-badge">SHARED BY PARTNER</span>
-        <button style="background:none;border:none;color:var(--text-tertiary);cursor:pointer;font-weight:700;" onclick="deletePodcast('${p.id}')">✕</button>
+        <span class="tag-badge ${isOwner ? '' : 'partner'}">${isOwner ? 'YOUR DISPATCH' : 'SHARED BY PARTNER'}</span>
+        ${isOwner ? `<button style="background:none;border:none;color:var(--text-tertiary);cursor:pointer;font-weight:700;" onclick="deletePodcast('${p.id}')" title="Delete your episode">✕</button>` : ''}
       </div>
       <div class="card-body">
         <div>
@@ -283,7 +297,7 @@ function renderConversations(state) {
         </div>
       </div>
     </article>
-  `).join('');
+  `;}).join('');
 
   const editorialHtml = editorialConvs.map(item => `
     <article class="conversation-card">
@@ -330,15 +344,20 @@ function renderPeople(state) {
     return;
   }
 
-  const userHtml = userPeople.map(p => `
+  const store = window.AppAPI ? window.AppAPI.store : null;
+  const myUid = store ? store.getUserId() : '';
+
+  const userHtml = userPeople.map(p => {
+    const isOwner = !p.ownerId || p.ownerId === myUid;
+    return `
     <div class="person-poster">
       <div class="person-cutout-wrap" style="height: 180px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.03);">
         <span style="font-size: 48px; opacity: 0.7;">👤</span>
-        <span class="person-badge">${p.author ? p.author.toUpperCase() : 'SHARED'}</span>
+        <span class="person-badge">${isOwner ? 'ADDED BY YOU' : 'ADDED BY PARTNER'}</span>
       </div>
       <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-top: 14px;">
         <h3 class="person-name" style="margin-top: 0;">${p.name}</h3>
-        <button style="background:none;border:none;color:var(--text-tertiary);cursor:pointer;font-weight:700;" onclick="deletePerson('${p.id}')">✕</button>
+        ${isOwner ? `<button style="background:none;border:none;color:var(--text-tertiary);cursor:pointer;font-weight:700;" onclick="deletePerson('${p.id}')" title="Delete profile">✕</button>` : ''}
       </div>
       <div class="person-field">${p.role || 'BUILDER & THINKER'}</div>
       ${p.quote ? `<div class="person-quote">"${p.quote}"</div>` : ''}
@@ -346,7 +365,7 @@ function renderPeople(state) {
         ● DUAL-SYNCED PROFILE
       </div>
     </div>
-  `).join('');
+  `;}).join('');
 
   const editorialHtml = editorialPeople.map(p => `
     <div class="person-poster">
@@ -388,12 +407,17 @@ function renderAtomicIdeas(state) {
     return;
   }
 
-  const userHtml = userIdeas.map((u, i) => `
+  const store = window.AppAPI ? window.AppAPI.store : null;
+  const myUid = store ? store.getUserId() : '';
+
+  const userHtml = userIdeas.map((u, i) => {
+    const isOwner = !u.ownerId || u.ownerId === myUid;
+    return `
     <div class="atomic-idea-card">
       <div>
         <div class="idea-header">
-          <span class="idea-badge">PARTNER IDEA</span>
-          <button style="background:none;border:none;cursor:pointer;color:var(--text-tertiary);font-weight:700;" onclick="deleteIdea('${u.id}')">✕</button>
+          <span class="idea-badge ${isOwner ? '' : 'partner'}">${isOwner ? 'YOUR ATOMIC IDEA' : 'PARTNER IDEA'}</span>
+          ${isOwner ? `<button style="background:none;border:none;cursor:pointer;color:var(--text-tertiary);font-weight:700;" onclick="deleteIdea('${u.id}')" title="Delete your idea">✕</button>` : ''}
         </div>
         <h3 class="idea-title">${u.title}</h3>
         <div class="idea-quote">"${u.description}"</div>
@@ -403,7 +427,7 @@ function renderAtomicIdeas(state) {
         <button class="btn-secondary" style="padding: 4px 10px; font-size: 11px;" onclick="pinToWall('${u.title.replace(/'/g, "\\'")}', '${u.description.replace(/'/g, "\\'")}')">PIN TO WALL</button>
       </div>
     </div>
-  `).join('');
+  `;}).join('');
 
   const editorialHtml = ideas.map(idea => `
     <div class="atomic-idea-card">
@@ -445,23 +469,28 @@ function renderBooks(state) {
     return;
   }
 
-  const userHtml = userBooks.map(b => `
+  const store = window.AppAPI ? window.AppAPI.store : null;
+  const myUid = store ? store.getUserId() : '';
+
+  const userHtml = userBooks.map(b => {
+    const isOwner = !b.ownerId || b.ownerId === myUid;
+    return `
     <div class="atomic-idea-card">
       <div>
         <div class="idea-header">
           <span class="idea-badge">${b.status}</span>
-          <button style="background:none;border:none;cursor:pointer;color:var(--text-tertiary);font-weight:700;" onclick="deleteBook('${b.id}')">✕</button>
+          ${isOwner ? `<button style="background:none;border:none;cursor:pointer;color:var(--text-tertiary);font-weight:700;" onclick="deleteBook('${b.id}')" title="Delete your book">✕</button>` : ''}
         </div>
         <h3 class="idea-title">${b.title}</h3>
         <div style="font-family: var(--font-mono); font-size: 11px; margin-bottom: 12px; font-weight: 600; color: var(--text-tertiary);">BY ${b.author}</div>
         <div class="idea-quote">"${b.notes}"</div>
       </div>
       <div class="idea-footer">
-        <span>SHARED BY PARTNER</span>
+        <span>${isOwner ? 'LOGGED BY YOU' : 'SHARED BY PARTNER'}</span>
         <button class="btn-secondary" style="padding: 4px 10px; font-size: 11px;" onclick="pinToWall('${b.title.replace(/'/g, "\\'")}', '${b.notes.replace(/'/g, "\\'")}')">PIN TO WALL</button>
       </div>
     </div>
-  `).join('');
+  `;}).join('');
 
   const canonHtml = canonicalBooks.map(b => `
     <div class="atomic-idea-card">
@@ -505,12 +534,17 @@ function renderEvents(state) {
     return;
   }
 
-  const userHtml = userEvents.map(ev => `
+  const store = window.AppAPI ? window.AppAPI.store : null;
+  const myUid = store ? store.getUserId() : '';
+
+  const userHtml = userEvents.map(ev => {
+    const isOwner = !ev.ownerId || ev.ownerId === myUid;
+    return `
     <div class="event-poster-card">
       <div>
         <div style="display: flex; justify-content: space-between; align-items: flex-start;">
           <div class="event-date-large">${ev.date || 'SOON'}</div>
-          <button style="background:none;border:none;color:var(--text-tertiary);cursor:pointer;font-weight:700;" onclick="deleteEvent('${ev.id}')">✕</button>
+          ${isOwner ? `<button style="background:none;border:none;color:var(--text-tertiary);cursor:pointer;font-weight:700;" onclick="deleteEvent('${ev.id}')" title="Delete event">✕</button>` : ''}
         </div>
         <div class="event-city-tag">${ev.city || 'LOCATION TBA'} · ${ev.year || new Date().getFullYear()}</div>
         <h3 class="event-title-huge">${ev.title}</h3>
@@ -520,11 +554,11 @@ function renderEvents(state) {
         </div>
       </div>
       <div class="event-stats-strip">
-        <span>${ev.stats || 'CURATED'}</span>
+        <span>${isOwner ? 'ORGANIZED BY YOU' : 'CURATED BY PARTNER'}</span>
         <button class="btn-primary" style="padding: 6px 14px; font-size: 12px;" onclick="window.AppAPI.showToast('🎟️ RSVP Confirmed for ${ev.title.replace(/'/g, "\\'")}')">ATTEND →</button>
       </div>
     </div>
-  `).join('');
+  `;}).join('');
 
   const editorialHtml = editorialEvents.map(ev => `
     <div class="event-poster-card">
@@ -567,15 +601,19 @@ function renderLiveIdeaWall(state) {
     return;
   }
 
+  const store = window.AppAPI ? window.AppAPI.store : null;
+  const myUid = store ? store.getUserId() : '';
+
   container.innerHTML = notes.map((note) => {
+    const isOwner = !note.ownerId || note.ownerId === myUid;
     return `
       <div class="tape-pin-note">
-        <div class="note-author">PINNED · ${new Date(note.created).toLocaleDateString()}</div>
+        <div class="note-author">${isOwner ? 'PINNED BY YOU' : 'PINNED BY PARTNER'} · ${new Date(note.created).toLocaleDateString()}</div>
         <h4 style="font-family: var(--font-display); font-size: 18px; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.4px; color: var(--text-primary);">${note.title}</h4>
         <div class="note-text">"${note.description}"</div>
         <div class="note-actions">
           <span style="color: var(--deep-green);">● LIVE SYNCED</span>
-          <button class="btn-delete-note" onclick="deleteWallNote('${note.id}')">REMOVE</button>
+          ${isOwner ? `<button class="btn-delete-note" onclick="deleteWallNote('${note.id}')">REMOVE</button>` : `<span style="font-family: var(--font-mono); font-size: 10px; color: var(--text-tertiary); letter-spacing: 0.5px;">SHARED BY PARTNER</span>`}
         </div>
       </div>
     `;
@@ -602,11 +640,16 @@ function renderCircles(state) {
     return;
   }
 
-  const userHtml = userCircles.map(c => `
+  const store = window.AppAPI ? window.AppAPI.store : null;
+  const myUid = store ? store.getUserId() : '';
+
+  const userHtml = userCircles.map(c => {
+    const isOwner = !c.ownerId || c.ownerId === myUid;
+    return `
     <div class="conversation-card">
       <div class="card-top-tag">
-        <span class="tag-badge">${c.tag}</span>
-        <button style="background:none;border:none;color:var(--text-tertiary);cursor:pointer;font-weight:700;" onclick="deleteCircle('${c.id}')">✕</button>
+        <span class="tag-badge ${isOwner ? '' : 'partner'}">${isOwner ? c.tag : `${c.tag} (PARTNER)`}</span>
+        ${isOwner ? `<button style="background:none;border:none;color:var(--text-tertiary);cursor:pointer;font-weight:700;" onclick="deleteCircle('${c.id}')" title="Delete circle">✕</button>` : ''}
       </div>
       <div class="card-body">
         <div>
@@ -619,7 +662,7 @@ function renderCircles(state) {
         </div>
       </div>
     </div>
-  `).join('');
+  `;}).join('');
 
   const editorialHtml = editorialCircles.map(c => `
     <div class="conversation-card">
@@ -1034,37 +1077,65 @@ function pinToWall(title, description) {
 }
 
 function deleteWallNote(id) {
-  window.AppAPI.store.removeVisionItem(id);
-  window.AppAPI.showToast('Note removed from wall');
+  const ok = window.AppAPI.store.removeVisionItem(id);
+  if (ok) {
+    window.AppAPI.showToast('Note removed from wall');
+  } else {
+    window.AppAPI.showToast('⚠️ Only the uploader can remove their note.');
+  }
 }
 
 function deletePodcast(id) {
-  window.AppAPI.store.removePodcastItem(id);
-  window.AppAPI.showToast('Podcast removed');
+  const ok = window.AppAPI.store.removePodcastItem(id);
+  if (ok) {
+    window.AppAPI.showToast('Podcast removed');
+  } else {
+    window.AppAPI.showToast('⚠️ Only the uploader can remove their podcast.');
+  }
 }
 
 function deleteBook(id) {
-  window.AppAPI.store.removeBookItem(id);
-  window.AppAPI.showToast('Book removed');
+  const ok = window.AppAPI.store.removeBookItem(id);
+  if (ok) {
+    window.AppAPI.showToast('Book removed');
+  } else {
+    window.AppAPI.showToast('⚠️ Only the uploader can remove their book.');
+  }
 }
 
 function deleteIdea(id) {
-  window.AppAPI.store.removeVisionItem(id);
-  window.AppAPI.showToast('Idea removed');
+  const ok = window.AppAPI.store.removeVisionItem(id);
+  if (ok) {
+    window.AppAPI.showToast('Idea removed');
+  } else {
+    window.AppAPI.showToast('⚠️ Only the uploader can remove their idea.');
+  }
 }
 
 function deletePerson(id) {
-  window.AppAPI.store.removePersonItem(id);
-  window.AppAPI.showToast('Person removed');
+  const ok = window.AppAPI.store.removePersonItem(id);
+  if (ok) {
+    window.AppAPI.showToast('Person removed');
+  } else {
+    window.AppAPI.showToast('⚠️ Only the uploader can remove their profile.');
+  }
 }
 
 function deleteEvent(id) {
-  window.AppAPI.store.removeEventItem(id);
-  window.AppAPI.showToast('Event removed');
+  const ok = window.AppAPI.store.removeEventItem(id);
+  if (ok) {
+    window.AppAPI.showToast('Event removed');
+  } else {
+    window.AppAPI.showToast('⚠️ Only the uploader can remove their event.');
+  }
 }
 
 function deleteCircle(id) {
-  window.AppAPI.store.removeCircleItem(id);
-  window.AppAPI.showToast('Circle removed');
+  const ok = window.AppAPI.store.removeCircleItem(id);
+  if (ok) {
+    window.AppAPI.showToast('Circle removed');
+  } else {
+    window.AppAPI.showToast('⚠️ Only the creator can remove their circle.');
+  }
 }
 

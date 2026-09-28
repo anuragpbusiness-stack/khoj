@@ -51,6 +51,25 @@ class SharedStore {
     this.notify();
   }
 
+  getUserId() {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      let id = localStorage.getItem('khoj_user_uid');
+      if (!id) {
+        id = 'uid_' + Math.random().toString(36).substr(2, 8) + '_' + Date.now().toString(36);
+        localStorage.setItem('khoj_user_uid', id);
+      }
+      return id;
+    }
+    return 'uid_local';
+  }
+
+  canDelete(item) {
+    if (!item) return false;
+    const myUid = this.getUserId();
+    // Only the user who created/uploaded this item can remove it
+    return !item.ownerId || item.ownerId === myUid;
+  }
+
   onChange(listener) {
     this.changeListeners.push(listener);
     // Call immediately with current state
@@ -154,131 +173,190 @@ class SharedStore {
   // Vision mutations
   addVisionItem(title, description, category = 'General', author = 'You') {
     if (!this.state.vision) this.state.vision = [];
+    const myUid = this.getUserId();
+    const itemId = 'v_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
     this.state.vision.unshift({
-      id: 'v_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+      id: itemId,
       title: title || 'Untitled Vision',
       description: description || '',
       category: category,
       created: Date.now(),
-      author: author
+      author: author,
+      ownerId: myUid
     });
     this.logFeedUpload({
+      feedItemId: itemId,
       type: category === 'Atomic Idea' ? 'ATOMIC IDEA' : (category === 'Wall Note' ? 'LIVE WALL NOTE' : 'VISION'),
       title: title || 'Untitled Vision',
       body: description || '',
       meta: category,
-      author: author
+      author: author,
+      ownerId: myUid
     });
     this.broadcastUpdate();
   }
 
   removeVisionItem(id) {
+    const item = (this.state.vision || []).find(v => v.id === id);
+    if (item && !this.canDelete(item)) {
+      console.warn('Unauthorized removal: only the uploader can delete this note/idea');
+      return false;
+    }
     this.state.vision = (this.state.vision || []).filter(v => v.id !== id);
+    this.state.feed = (this.state.feed || []).filter(f => f.id !== id && f.feedItemId !== id);
     this.broadcastUpdate();
+    return true;
   }
 
   // Podcasts mutations
   addPodcastItem(title, url, takeaways, author = 'You') {
     if (!this.state.podcasts) this.state.podcasts = [];
+    const myUid = this.getUserId();
+    const itemId = 'p_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
     this.state.podcasts.unshift({
-      id: 'p_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+      id: itemId,
       title: title || 'Untitled Podcast',
       url: url || '',
       takeaways: takeaways || '',
       created: Date.now(),
-      author: author
+      author: author,
+      ownerId: myUid
     });
     this.logFeedUpload({
+      feedItemId: itemId,
       type: 'PODCAST',
       title: title || 'Untitled Podcast',
       body: takeaways || '',
       meta: url || 'Audio / Video Episode',
-      author: author
+      author: author,
+      ownerId: myUid
     });
     this.broadcastUpdate();
   }
 
   removePodcastItem(id) {
+    const item = (this.state.podcasts || []).find(p => p.id === id);
+    if (item && !this.canDelete(item)) {
+      console.warn('Unauthorized removal: only the uploader can delete this podcast');
+      return false;
+    }
     this.state.podcasts = (this.state.podcasts || []).filter(p => p.id !== id);
+    this.state.feed = (this.state.feed || []).filter(f => f.id !== id && f.feedItemId !== id);
     this.broadcastUpdate();
+    return true;
   }
 
   // Books mutations
   addBookItem(title, authorName, notes, status = 'Currently Reading', author = 'You') {
     if (!this.state.books) this.state.books = [];
+    const myUid = this.getUserId();
+    const itemId = 'b_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
     this.state.books.unshift({
-      id: 'b_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+      id: itemId,
       title: title || 'Untitled Book',
       author: authorName || 'Unknown Author',
       notes: notes || '',
       status: status,
       created: Date.now(),
-      author: author
+      author: author,
+      ownerId: myUid
     });
     this.logFeedUpload({
+      feedItemId: itemId,
       type: 'BOOK',
       title: `${title} (by ${authorName || 'Unknown'})`,
       body: notes || '',
       meta: status,
-      author: author
+      author: author,
+      ownerId: myUid
     });
     this.broadcastUpdate();
   }
 
   removeBookItem(id) {
+    const item = (this.state.books || []).find(b => b.id === id);
+    if (item && !this.canDelete(item)) {
+      console.warn('Unauthorized removal: only the uploader can delete this book');
+      return false;
+    }
     this.state.books = (this.state.books || []).filter(b => b.id !== id);
+    this.state.feed = (this.state.feed || []).filter(f => f.id !== id && f.feedItemId !== id);
     this.broadcastUpdate();
+    return true;
   }
 
   logFeedUpload(entry) {
     if (!this.state.feed) this.state.feed = [];
+    const myUid = entry.ownerId || this.getUserId();
     this.state.feed.unshift({
       id: 'feed_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+      feedItemId: entry.feedItemId || null,
       type: entry.type || 'UPLOAD',
       title: entry.title || '',
       body: entry.body || '',
       meta: entry.meta || '',
       author: entry.author || 'You',
+      ownerId: myUid,
       timestamp: Date.now()
     });
   }
 
   removeFeedPost(id) {
+    const item = (this.state.feed || []).find(f => f.id === id);
+    if (item && !this.canDelete(item)) {
+      console.warn('Unauthorized removal: only the uploader can delete this post');
+      return false;
+    }
     this.state.feed = (this.state.feed || []).filter(f => f.id !== id);
     this.broadcastUpdate();
+    return true;
   }
 
   // People mutations
   addPersonItem(name, role, quote, author = 'You') {
     if (!this.state.people) this.state.people = [];
+    const myUid = this.getUserId();
+    const itemId = 'person_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
     this.state.people.unshift({
-      id: 'person_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+      id: itemId,
       name: name || 'Unnamed Person',
       role: role || 'Builder & Thinker',
       quote: quote || '',
       created: Date.now(),
-      author: author
+      author: author,
+      ownerId: myUid
     });
     this.logFeedUpload({
+      feedItemId: itemId,
       type: 'PERSON',
       title: name || 'Unnamed Person',
       body: quote || '',
       meta: role || 'Builder Profile',
-      author: author
+      author: author,
+      ownerId: myUid
     });
     this.broadcastUpdate();
   }
 
   removePersonItem(id) {
+    const item = (this.state.people || []).find(p => p.id === id);
+    if (item && !this.canDelete(item)) {
+      console.warn('Unauthorized removal: only the uploader can delete this person profile');
+      return false;
+    }
     this.state.people = (this.state.people || []).filter(p => p.id !== id);
+    this.state.feed = (this.state.feed || []).filter(f => f.id !== id && f.feedItemId !== id);
     this.broadcastUpdate();
+    return true;
   }
 
   // Events mutations
   addEventItem(title, cityDate, desc, author = 'You') {
     if (!this.state.events) this.state.events = [];
+    const myUid = this.getUserId();
+    const itemId = 'ev_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
     this.state.events.unshift({
-      id: 'ev_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+      id: itemId,
       title: title || 'Untitled Gathering',
       city: cityDate || 'Location TBA',
       date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }).toUpperCase(),
@@ -287,49 +365,71 @@ class SharedStore {
       stats: 'Curated Gathering',
       desc: desc || '',
       created: Date.now(),
-      author: author
+      author: author,
+      ownerId: myUid
     });
     this.logFeedUpload({
+      feedItemId: itemId,
       type: 'EVENT',
       title: title || 'Untitled Gathering',
       body: desc || '',
       meta: cityDate || 'Salon / Gathering',
-      author: author
+      author: author,
+      ownerId: myUid
     });
     this.broadcastUpdate();
   }
 
   removeEventItem(id) {
+    const item = (this.state.events || []).find(e => e.id === id);
+    if (item && !this.canDelete(item)) {
+      console.warn('Unauthorized removal: only the uploader can delete this event');
+      return false;
+    }
     this.state.events = (this.state.events || []).filter(e => e.id !== id);
+    this.state.feed = (this.state.feed || []).filter(f => f.id !== id && f.feedItemId !== id);
     this.broadcastUpdate();
+    return true;
   }
 
   // Circles mutations
   addCircleItem(name, domain, desc, author = 'You') {
     if (!this.state.circles) this.state.circles = [];
+    const myUid = this.getUserId();
+    const itemId = 'circ_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
     this.state.circles.unshift({
-      id: 'circ_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+      id: itemId,
       name: name || 'Untitled Circle',
       tag: domain || 'DOMAIN ROOM',
       desc: desc || '',
       members: '2 Members (Private)',
       activeDiscussions: '1 Active Discussion',
       created: Date.now(),
-      author: author
+      author: author,
+      ownerId: myUid
     });
     this.logFeedUpload({
+      feedItemId: itemId,
       type: 'CIRCLE',
       title: name || 'Untitled Circle',
       body: desc || '',
       meta: domain || 'Private Circle',
-      author: author
+      author: author,
+      ownerId: myUid
     });
     this.broadcastUpdate();
   }
 
   removeCircleItem(id) {
+    const item = (this.state.circles || []).find(c => c.id === id);
+    if (item && !this.canDelete(item)) {
+      console.warn('Unauthorized removal: only the creator can delete this circle');
+      return false;
+    }
     this.state.circles = (this.state.circles || []).filter(c => c.id !== id);
+    this.state.feed = (this.state.feed || []).filter(f => f.id !== id && f.feedItemId !== id);
     this.broadcastUpdate();
+    return true;
   }
 }
 
