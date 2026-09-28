@@ -1158,13 +1158,33 @@ function deleteCircle(id) {
 }
 
 // ============================================================
-// CHAT — State, Renderer & Interactions
+// CHAT — WhatsApp-Style
 // ============================================================
 
-// Tracks the currently selected context item { type, title, id }
 let _chatContext = null;
+let _contextPickerOpen = false;
 
-// ---- Render chat messages ----
+// ---- Update partner status in chat header ----
+function updateChatHeaderStatus(isOnline) {
+  const el = document.getElementById('wa-partner-status');
+  if (!el) return;
+  if (isOnline) {
+    el.textContent = '● Partner online';
+    el.className = 'wa-header-status online';
+  } else {
+    el.textContent = '● Partner offline';
+    el.className = 'wa-header-status';
+  }
+}
+
+// Hook into network status changes to update chat header too
+(function patchNetworkStatusForChat() {
+  const orig = window.onNetworkStatusForChat || null;
+  // We'll patch this after AppAPI is ready by listening to store changes
+  // The actual update happens in the DOMContentLoaded block below via a timeout
+})();
+
+// ---- Render chat messages (WhatsApp style) ----
 function renderChat(state) {
   const container = document.getElementById('chat-messages-area');
   if (!container) return;
@@ -1175,10 +1195,10 @@ function renderChat(state) {
 
   if (messages.length === 0) {
     container.innerHTML = `
-      <div class="chat-empty-state">
-        <div class="chat-empty-icon">✦</div>
-        <div class="chat-empty-title">Start the Conversation</div>
-        <div class="chat-empty-sub">Send a message below. Attach any upload from the sidebar as context — your partner sees it live in real-time.</div>
+      <div class="wa-empty">
+        <div class="wa-empty-lock">🔒</div>
+        <div class="wa-empty-title">Messages are end-to-end synced</div>
+        <div class="wa-empty-sub">Tap 📎 to attach a podcast, book, or idea as context — your partner sees everything live.</div>
       </div>
     `;
     return;
@@ -1190,59 +1210,61 @@ function renderChat(state) {
   messages.forEach(msg => {
     const isMine = !msg.ownerId || msg.ownerId === myUid;
     const side = isMine ? 'mine' : 'theirs';
-    const authorLabel = isMine ? 'YOU' : 'PARTNER';
 
     const dateObj = new Date(msg.timestamp);
-    const dateStr = dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
+    const today = new Date();
+    const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
+    let dateStr;
+    if (dateObj.toDateString() === today.toDateString()) dateStr = 'Today';
+    else if (dateObj.toDateString() === yesterday.toDateString()) dateStr = 'Yesterday';
+    else dateStr = dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
     const timeStr = dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
 
-    // Date divider
     if (dateStr !== lastDateStr) {
       lastDateStr = dateStr;
-      html += `<div class="chat-date-divider"><span>${dateStr}</span></div>`;
+      html += `<div class="wa-date-pill"><span>${dateStr}</span></div>`;
     }
 
-    // Context reference block
+    // Context quote inside bubble
     let ctxHtml = '';
     if (msg.context) {
-      const icons = { 'PODCAST': '🎙️', 'BOOK': '📚', 'IDEA': '💡', 'PERSON': '👤', 'EVENT': '📍', 'NOTE': '📌' };
+      const icons = { PODCAST: '🎙️', BOOK: '📚', IDEA: '💡', PERSON: '👤', EVENT: '📍', NOTE: '📌' };
       const icon = icons[msg.context.type] || '↗';
       ctxHtml = `
-        <div class="chat-msg-context">
-          <span class="chat-msg-context-type">${icon} ${msg.context.type}</span>
-          <span class="chat-msg-context-title">${escapeHtml(msg.context.title)}</span>
+        <div class="wa-bubble-ctx">
+          <span class="wa-bubble-ctx-type">${icon} ${msg.context.type}</span>
+          <span class="wa-bubble-ctx-title">${escapeHtml(msg.context.title)}</span>
         </div>
       `;
     }
 
-    // Delete button (own messages only)
     const delBtn = isMine
-      ? `<button class="delete-msg-btn" onclick="deleteChatMsg('${msg.id}')" title="Delete">✕</button>`
+      ? `<button class="wa-del-btn" onclick="deleteChatMsg('${msg.id}')" title="Delete">✕</button>`
       : '';
 
     html += `
-      <div class="chat-message-group ${side}">
-        <div class="chat-meta-row">
-          <span class="chat-author-label ${side}">${authorLabel}</span>
-          <span class="chat-timestamp">${timeStr}</span>
-        </div>
-        ${ctxHtml}
-        <div class="chat-bubble ${side}">
+      <div class="wa-msg-row ${side}">
+        <div class="wa-bubble ${side}">
+          ${ctxHtml}
           ${escapeHtml(msg.text)}
-          ${delBtn}
+          <div class="wa-bubble-footer">
+            <span class="wa-bubble-time">${timeStr}</span>
+            ${delBtn}
+          </div>
         </div>
       </div>
     `;
   });
 
-  const wasAtBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 60;
+  const wasAtBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 80;
   container.innerHTML = html;
-  if (wasAtBottom) {
+  if (wasAtBottom || messages.length <= 1) {
     container.scrollTop = container.scrollHeight;
   }
 }
 
-// ---- Render sidebar context list ----
+// ---- Render context picker list (WhatsApp attach picker) ----
 function renderChatContextList(state) {
   const container = document.getElementById('chat-context-list');
   if (!container) return;
@@ -1252,30 +1274,22 @@ function renderChatContextList(state) {
     { key: 'books',    type: 'BOOK',    icon: '📚', titleFn: b => b.title },
     { key: 'people',   type: 'PERSON',  icon: '👤', titleFn: p => p.name },
     { key: 'events',   type: 'EVENT',   icon: '📍', titleFn: e => e.title },
-    {
-      key: 'vision', type: 'IDEA', icon: '💡',
-      titleFn: v => v.title,
-      filterFn: v => v.category === 'Atomic Idea'
-    },
-    {
-      key: 'vision', type: 'NOTE', icon: '📌',
-      titleFn: v => v.title,
-      filterFn: v => v.category === 'Wall Note' || !v.category
-    }
+    { key: 'vision', type: 'IDEA', icon: '💡', titleFn: v => v.title, filterFn: v => v.category === 'Atomic Idea' },
+    { key: 'vision', type: 'NOTE', icon: '📌', titleFn: v => v.title, filterFn: v => v.category === 'Wall Note' || !v.category }
   ];
 
   let html = '';
   typeConfig.forEach(cfg => {
     const items = (state[cfg.key] || []).filter(cfg.filterFn || (() => true));
-    items.slice(0, 12).forEach(item => {
+    items.slice(0, 10).forEach(item => {
       const title = cfg.titleFn(item);
       const isSelected = _chatContext && _chatContext.id === item.id;
       html += `
-        <div class="chat-context-item ${isSelected ? 'selected' : ''}" onclick="attachChatContext('${cfg.type}', '${escapeAttr(title)}', '${item.id}')">
-          <span class="chat-context-item-icon">${cfg.icon}</span>
-          <div class="chat-context-item-body">
-            <div class="chat-context-item-type">${cfg.type}</div>
-            <div class="chat-context-item-title">${escapeHtml(title)}</div>
+        <div class="wa-ctx-item ${isSelected ? 'selected' : ''}" onclick="attachChatContext('${cfg.type}', '${escapeAttr(title)}', '${item.id}')">
+          <span class="wa-ctx-item-icon">${cfg.icon}</span>
+          <div class="wa-ctx-item-info">
+            <div class="wa-ctx-item-type">${cfg.type}</div>
+            <div class="wa-ctx-item-title">${escapeHtml(title)}</div>
           </div>
         </div>
       `;
@@ -1283,31 +1297,39 @@ function renderChatContextList(state) {
   });
 
   if (!html) {
-    html = `<div style="padding: 16px 14px; font-family: var(--font-mono); font-size: 10px; color: var(--text-tertiary); line-height: 1.6;">Upload podcasts, books, ideas, people, or events and they'll appear here as context options.</div>`;
+    html = `<div style="padding: 16px; font-family: var(--font-body); font-size: 13px; color: var(--text-tertiary);">Upload podcasts, books, ideas, people, or events to attach them as chat context.</div>`;
   }
 
   container.innerHTML = html;
 }
 
-// ---- Attach a context item from the sidebar ----
+// ---- Toggle context picker ----
+function toggleContextPicker() {
+  const picker = document.getElementById('wa-context-picker');
+  const attachBtn = document.getElementById('wa-attach-btn');
+  if (!picker) return;
+  _contextPickerOpen = !_contextPickerOpen;
+  picker.style.display = _contextPickerOpen ? 'flex' : 'none';
+  if (attachBtn) attachBtn.classList.toggle('active', _contextPickerOpen);
+  if (_contextPickerOpen && window.AppAPI) {
+    renderChatContextList(window.AppAPI.store.state);
+  }
+}
+
+// ---- Attach context item ----
 function attachChatContext(type, title, id) {
   _chatContext = { type, title, id };
 
-  // Update sidebar preview
-  const preview = document.getElementById('chat-context-preview');
-  const typeLabel = document.getElementById('chat-context-type-label');
-  const titleLabel = document.getElementById('chat-context-title-label');
-  if (preview) preview.style.display = 'block';
-  if (typeLabel) typeLabel.textContent = type;
-  if (titleLabel) titleLabel.textContent = title;
-
-  // Update input bar
+  // Show context quote bar above input
   const bar = document.getElementById('chat-context-bar');
+  const barType = document.getElementById('chat-context-bar-type');
   const barLabel = document.getElementById('chat-context-bar-label');
   if (bar) bar.style.display = 'flex';
-  if (barLabel) barLabel.textContent = `${type}: ${title}`;
+  if (barType) barType.textContent = type;
+  if (barLabel) barLabel.textContent = title;
 
-  // Re-render sidebar to mark selected
+  // Close picker and re-render to mark selected
+  toggleContextPicker();
   if (window.AppAPI) renderChatContextList(window.AppAPI.store.state);
 
   // Focus input
@@ -1315,20 +1337,15 @@ function attachChatContext(type, title, id) {
   if (input) input.focus();
 }
 
-// ---- Clear selected context ----
+// ---- Clear context ----
 function clearChatContext() {
   _chatContext = null;
-
-  const preview = document.getElementById('chat-context-preview');
-  if (preview) preview.style.display = 'none';
-
   const bar = document.getElementById('chat-context-bar');
   if (bar) bar.style.display = 'none';
-
   if (window.AppAPI) renderChatContextList(window.AppAPI.store.state);
 }
 
-// ---- Send a message ----
+// ---- Send message ----
 function sendChatMsg() {
   const input = document.getElementById('chat-text-input');
   if (!input) return;
@@ -1339,8 +1356,6 @@ function sendChatMsg() {
 
   input.value = '';
   input.style.height = 'auto';
-
-  // Clear context after sending
   clearChatContext();
 }
 
@@ -1350,7 +1365,7 @@ function deleteChatMsg(id) {
   if (!ok) window.AppAPI.showToast('⚠️ You can only delete your own messages.');
 }
 
-// ---- Utility: HTML escape ----
+// ---- HTML escape utilities ----
 function escapeHtml(str) {
   if (!str) return '';
   return String(str)
@@ -1364,4 +1379,6 @@ function escapeAttr(str) {
   if (!str) return '';
   return String(str).replace(/'/g, "\\'").replace(/"/g, '&quot;');
 }
+
+
 

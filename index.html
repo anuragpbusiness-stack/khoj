@@ -192,43 +192,51 @@
     </section>
 
     <!-- 8. CHAT TAB -->
-    <section id="tab-chat" class="tab-section" style="display: none;">
-      <div class="chat-shell">
+    <section id="tab-chat" class="tab-section" style="display: none; padding: 0;">
+      <div class="wa-shell">
 
-        <!-- Left: Context Picker Sidebar -->
-        <aside class="chat-sidebar">
-          <div class="chat-sidebar-header">
-            <span class="sub-tag">REFERENCE</span>
-            <h4 style="font-family: var(--font-display); font-size: 15px; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; color: var(--text-primary);">Highlight Context</h4>
-            <p style="font-family: var(--font-mono); font-size: 10px; color: var(--text-tertiary); margin-top: 6px; line-height: 1.5;">Tap any upload to attach it as context to your next message.</p>
+        <!-- Chat Header -->
+        <div class="wa-header">
+          <div class="wa-header-avatar">K</div>
+          <div class="wa-header-info">
+            <div class="wa-header-name">KHOJ — Private Channel</div>
+            <div class="wa-header-status" id="wa-partner-status">● Partner offline</div>
           </div>
-          <div id="chat-context-list" class="chat-context-list">
-            <!-- Rendered by JS -->
-          </div>
-          <div id="chat-context-preview" class="chat-context-preview" style="display: none;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-              <span class="sub-tag" id="chat-context-type-label">PODCAST</span>
-              <button onclick="clearChatContext()" style="background:none;border:none;color:var(--text-tertiary);cursor:pointer;font-size:14px;font-weight:700;">✕</button>
-            </div>
-            <div id="chat-context-title-label" style="font-family: var(--font-display); font-size: 13px; text-transform: uppercase; margin-top: 6px; color: var(--text-primary); letter-spacing: 0.3px;"></div>
-          </div>
-        </aside>
+        </div>
 
-        <!-- Right: Chat Window -->
-        <div class="chat-window">
-          <div class="chat-messages-area" id="chat-messages-area">
-            <!-- Rendered by JS -->
+        <!-- Messages Area -->
+        <div class="wa-messages" id="chat-messages-area">
+          <!-- Rendered by JS -->
+        </div>
+
+        <!-- Context Quote Strip (shown when context selected) -->
+        <div id="chat-context-bar" class="wa-context-bar" style="display:none;">
+          <div class="wa-context-bar-accent"></div>
+          <div class="wa-context-bar-body">
+            <span class="wa-context-bar-type" id="chat-context-bar-type"></span>
+            <span class="wa-context-bar-title" id="chat-context-bar-label"></span>
           </div>
-          <div class="chat-input-area">
-            <div id="chat-context-bar" class="chat-context-bar" style="display: none;">
-              <span style="font-family: var(--font-mono); font-size: 10px; color: var(--deep-green);">↗ CONTEXT:</span>
-              <span id="chat-context-bar-label" style="font-family: var(--font-mono); font-size: 10px; color: var(--text-secondary); margin-left: 6px;"></span>
-              <button onclick="clearChatContext()" style="background:none;border:none;color:var(--text-tertiary);cursor:pointer;font-size:12px;font-weight:700;margin-left: auto;">✕</button>
-            </div>
-            <div class="chat-input-row">
-              <textarea id="chat-text-input" class="chat-textarea" placeholder="Type a message... (Enter to send, Shift+Enter for newline)" rows="1"></textarea>
-              <button class="chat-send-btn" onclick="sendChatMsg()">SEND ↑</button>
-            </div>
+          <button class="wa-context-bar-close" onclick="clearChatContext()">✕</button>
+        </div>
+
+        <!-- Input Row -->
+        <div class="wa-input-row">
+          <!-- Attach / Context button -->
+          <button class="wa-attach-btn" onclick="toggleContextPicker()" title="Attach context from uploads" id="wa-attach-btn">📎</button>
+          <textarea id="chat-text-input" class="wa-input" placeholder="Type a message..." rows="1"></textarea>
+          <button class="wa-send-btn" onclick="sendChatMsg()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z" fill="currentColor"/></svg>
+          </button>
+        </div>
+
+        <!-- Context Picker Popover (slides up when attach is clicked) -->
+        <div id="wa-context-picker" class="wa-context-picker" style="display:none;">
+          <div class="wa-context-picker-header">
+            <span>Attach context from your uploads</span>
+            <button onclick="toggleContextPicker()" style="background:none;border:none;color:var(--text-tertiary);cursor:pointer;font-size:16px;font-weight:700;">✕</button>
+          </div>
+          <div id="chat-context-list" class="wa-context-picker-list">
+            <!-- Rendered by JS -->
           </div>
         </div>
 
