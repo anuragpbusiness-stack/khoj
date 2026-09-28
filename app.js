@@ -30,6 +30,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }, duration);
   }
 
+  const partnerBadge = document.getElementById('partner-badge');
+
   // Social Network presence & sync status
   network.onStatus((status, details) => {
     switch (status) {
@@ -38,17 +40,24 @@ document.addEventListener('DOMContentLoaded', () => {
         break;
       case 'waiting':
         if (syncStatusText) syncStatusText.textContent = 'FEED SYNCED';
+        if (partnerBadge) partnerBadge.classList.remove('online');
         if (partnerDot) partnerDot.className = 'partner-dot offline';
         if (partnerStatusText) partnerStatusText.textContent = 'PARTNER OFFLINE';
+        if (pingReadout) pingReadout.style.display = 'none';
         break;
       case 'connected':
         if (syncStatusText) syncStatusText.textContent = 'FEED LIVE';
+        if (partnerBadge) partnerBadge.classList.add('online');
         if (partnerDot) partnerDot.className = 'partner-dot';
         if (partnerStatusText) partnerStatusText.textContent = 'PARTNER ONLINE';
-        showToast('✦ Partner joined your shared feed!');
+        if (details.latency && pingReadout) {
+          pingReadout.style.display = 'inline-block';
+          pingReadout.textContent = `${details.latency}MS`;
+        }
+        showToast('✦ Partner is now ONLINE!');
         break;
       case 'latency':
-        if (details.latency && pingReadout) {
+        if (details.latency && pingReadout && network.partnerOnline) {
           pingReadout.style.display = 'inline-block';
           pingReadout.textContent = `${details.latency}MS`;
         }
@@ -56,8 +65,10 @@ document.addEventListener('DOMContentLoaded', () => {
       case 'disconnected':
       case 'error':
         if (syncStatusText) syncStatusText.textContent = 'FEED SAVED (LOCAL)';
+        if (partnerBadge) partnerBadge.classList.remove('online');
         if (partnerDot) partnerDot.className = 'partner-dot offline';
         if (partnerStatusText) partnerStatusText.textContent = 'PARTNER OFFLINE';
+        if (pingReadout) pingReadout.style.display = 'none';
         break;
     }
   });
@@ -1056,54 +1067,4 @@ function deleteCircle(id) {
   window.AppAPI.store.removeCircleItem(id);
   window.AppAPI.showToast('Circle removed');
 }
-
-// Download & Direct OS App Install Handler (Zero Modals, Zero Alerts)
-let deferredPrompt = null;
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  if (window._getAppPending) {
-    window._getAppPending = false;
-    deferredPrompt.prompt();
-  }
-});
-
-function handleGetAppClick() {
-  const isMac = (navigator.platform && navigator.platform.toUpperCase().indexOf('MAC') >= 0) || 
-                (navigator.userAgent && navigator.userAgent.toUpperCase().indexOf('MAC') >= 0);
-
-  // 1. If native PWA install prompt is ready (Chrome / Edge / Chromium), trigger OS install sheet directly
-  if (deferredPrompt) {
-    deferredPrompt.prompt();
-    deferredPrompt.userChoice.then((choiceResult) => {
-      if (choiceResult && choiceResult.outcome === 'accepted') {
-        if (window.AppAPI && window.AppAPI.showToast) {
-          window.AppAPI.showToast('✓ KHOJ Desktop App installed!');
-        }
-      }
-      deferredPrompt = null;
-    });
-  } else {
-    window._getAppPending = true;
-  }
-
-  // 2. Directly trigger downloading the standalone app package (contains 1-click launchers for Windows & Mac)
-  const dl = document.createElement('a');
-  dl.href = 'KHOJ-App.zip';
-  dl.download = isMac ? 'KHOJ-macOS-App.zip' : 'KHOJ-Windows-App.zip';
-  document.body.appendChild(dl);
-  dl.click();
-  document.body.removeChild(dl);
-
-  // 3. Clean feedback toast (Never browser alert!)
-  if (window.AppAPI && window.AppAPI.showToast) {
-    window.AppAPI.showToast(isMac ? '⚡ Starting KHOJ macOS install & package download...' : '⚡ Starting KHOJ Windows install & package download...');
-  }
-}
-
-// Fallback stubs for backwards compatibility
-function triggerPwaInstall() { handleGetAppClick(); }
-function openDownloadModal() { handleGetAppClick(); }
-function closeDownloadModal() {}
-
 

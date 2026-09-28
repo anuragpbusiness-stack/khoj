@@ -1,16 +1,31 @@
-// network.js - Automatic 2-User Peer-to-Peer Pairing via Shared Password
+// network.js - Real-Time Presence & Direct Messaging via Global EMQX MQTT
 class NetworkManager {
   constructor() {
-    this.peer = null;
-    this.conn = null;
-    this.slot = null;
-    this.passwordHash = null;
-    this.currentPassword = null;
+    this.mqttClient = null;
+    this.sessionId = 'u_' + Math.random().toString(36).substr(2, 9);
+    this.partnerId = null;
+    this.partnerOnline = false;
+    this.lastPartnerSeen = 0;
+    this.currentPassword = 'vision.aa';
+    this.topicHash = null;
+    this.presenceTopic = null;
+    this.messageTopic = null;
+
     this.listeners = new Map();
     this.statusListeners = [];
-    this.pingInterval = null;
-    this.partnerLatency = null;
+    this.heartbeatTimer = null;
+    this.watchdogTimer = null;
     this.isConnecting = false;
+
+    // Send immediate offline signal when user closes or reloads tab
+    if (typeof window !== 'undefined') {
+      window.addEventListener('beforeunload', () => {
+        this.publishOffline();
+      });
+      window.addEventListener('pagehide', () => {
+        this.publishOffline();
+      });
+    }
   }
 
   onStatus(callback) {
@@ -18,7 +33,9 @@ class NetworkManager {
   }
 
   notifyStatus(status, details = {}) {
-    this.statusListeners.forEach(cb => cb(status, details));
+    this.statusListeners.forEach(cb => {
+      try { cb(status, details); } catch (e) { console.error('Error in status listener:', e); }
+    });
   }
 
   on(event, handler) {
@@ -30,220 +47,246 @@ class NetworkManager {
 
   emit(event, payload) {
     const handlers = this.listeners.get(event) || [];
-    handlers.forEach(h => h(payload));
+    handlers.forEach(h => {
+      try { h(payload); } catch (e) { console.error('Error in event handler:', e); }
+    });
   }
 
   send(event, payload = {}) {
-    if (this.conn && this.conn.open) {
-      this.conn.send({ event, payload, timestamp: Date.now() });
-    } else {
-      console.warn('Network: Cannot send, connection not open');
+    if (this.mqttClient && this.mqttClient.connected && this.messageTopic) {
+      const msg = JSON.stringify({
+        sender: this.sessionId,
+        event: event,
+        payload: payload,
+        timestamp: Date.now()
+      });
+      this.mqttClient.publish(this.messageTopic, msg, { qos: 1 });
     }
   }
 
   async hashPassword(password) {
-    const msgBuffer = new TextEncoder().encode("2u-salt-" + password.trim());
+    const msgBuffer = new TextEncoder().encode("khoj-presence-salt-" + password.trim());
     const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 18);
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 20);
   }
 
-  getPeerClass() {
+  getMqttLib() {
+    if (typeof window !== 'undefined' && window.mqtt) return window.mqtt;
+    if (typeof globalThis !== 'undefined' && globalThis.mqtt) return globalThis.mqtt;
     if (typeof require !== 'undefined') {
-      try {
-        const p = require('peerjs');
-        return p.Peer || p;
-      } catch (e) {}
+      try { return require('mqtt'); } catch (e) {}
     }
-    if (window.Peer) return window.Peer;
-    throw new Error('PeerJS not loaded');
+    return null;
   }
 
   async connectWithPassword(password = 'vision.aa') {
-    if (!password || !password.trim()) {
-      password = 'vision.aa';
-    }
-
     this.destroy();
     this.isConnecting = true;
-    this.currentPassword = password.trim();
-    this.passwordHash = await this.hashPassword(this.currentPassword);
+    this.currentPassword = (password || 'vision.aa').trim();
+    this.topicHash = await this.hashPassword(this.currentPassword);
+    this.presenceTopic = `u2_khoj_${this.topicHash}/presence`;
+    this.messageTopic = `u2_khoj_${this.topicHash}/msg`;
 
-    const PeerClass = this.getPeerClass();
-    const idSlot1 = `u2-${this.passwordHash}-1`;
-    const idSlot2 = `u2-${this.passwordHash}-2`;
+    const mqttLib = this.getMqttLib();
+    if (!mqttLib) {
+      console.warn('MQTT library not loaded. Retrying in 500ms...');
+      setTimeout(() => this.connectWithPassword(password), 500);
+      return;
+    }
 
-    this.notifyStatus('connecting', { message: 'Checking password and connecting...' });
+    this.notifyStatus('connecting', { message: 'Connecting to real-time network...' });
 
-    // Step 1: Try to claim Slot 1
-    const trySlot1 = () => {
-      this.peer = new PeerClass(idSlot1, {
-        debug: 1,
-        config: {
-          iceServers: [
-            { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:stun1.l.google.com:19302' },
-            { urls: 'stun:stun2.l.google.com:19302' }
-          ]
+    try {
+      // Connect to global enterprise WebSocket broker with Last Will and Testament (LWT)
+      this.mqttClient = mqttLib.connect('wss://broker.emqx.io:8084/mqtt', {
+        clientId: 'client_' + this.sessionId,
+        clean: true,
+        reconnectPeriod: 2500,
+        keepalive: 15,
+        will: {
+          topic: this.presenceTopic,
+          payload: JSON.stringify({
+            sender: this.sessionId,
+            type: 'presence',
+            status: 'offline',
+            timestamp: Date.now()
+          }),
+          qos: 1,
+          retain: false
         }
       });
 
-      this.peer.on('open', () => {
-        this.slot = 1;
+      this.mqttClient.on('connect', () => {
+        console.log('⚡ Real-time presence connected. Subscribing to:', this.presenceTopic);
         this.isConnecting = false;
-        this.notifyStatus('waiting', { 
-          message: 'Password active. Waiting for your partner to open the app (1/2 online).' 
-        });
-      });
 
-      this.peer.on('connection', (incomingConn) => {
-        if (this.conn && this.conn.open) {
-          // Extra participant rejected
-          incomingConn.on('open', () => {
-            incomingConn.send({ event: '__room_full__', payload: 'Max 2 people reached' });
-            setTimeout(() => incomingConn.close(), 500);
-          });
-          return;
+        this.mqttClient.subscribe(this.presenceTopic, { qos: 1 });
+        this.mqttClient.subscribe(this.messageTopic, { qos: 1 });
+
+        // Initially we are waiting for partner
+        if (!this.partnerOnline) {
+          this.notifyStatus('waiting', { message: 'Waiting for partner...' });
         }
-        this.setupConnection(incomingConn);
+
+        // Immediately announce online presence and query if partner is already online
+        this.publishPresence('online', true);
+
+        // Start heartbeat & watchdog loops
+        this.startHeartbeat();
+        this.startWatchdog();
       });
 
-      this.peer.on('error', (err) => {
-        if (err.type === 'unavailable-id') {
-          // Slot 1 is already taken by your partner! We will take Slot 2 and connect to Slot 1.
-          trySlot2();
-        } else {
-          this.isConnecting = false;
-          this.notifyStatus('error', { message: err.message || 'Network error' });
-        }
-      });
-    };
+      this.mqttClient.on('message', (topic, payload) => {
+        try {
+          const data = JSON.parse(payload.toString());
+          if (!data || data.sender === this.sessionId) {
+            // Ignore own messages
+            return;
+          }
 
-    // Step 2: If Slot 1 was taken, claim Slot 2 and connect to Slot 1
-    const trySlot2 = () => {
-      if (this.peer) {
-        try { this.peer.destroy(); } catch (e) {}
-      }
-
-      this.peer = new PeerClass(idSlot2, {
-        debug: 1,
-        config: {
-          iceServers: [
-            { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:stun1.l.google.com:19302' },
-            { urls: 'stun:stun2.l.google.com:19302' }
-          ]
+          if (topic === this.presenceTopic) {
+            this.handlePresenceMessage(data);
+          } else if (topic === this.messageTopic) {
+            if (data.event) {
+              this.emit(data.event, data.payload);
+            }
+          }
+        } catch (err) {
+          console.warn('Error parsing incoming message:', err);
         }
       });
 
-      this.peer.on('open', () => {
-        this.slot = 2;
-        this.isConnecting = false;
-        this.notifyStatus('connecting', { message: 'Partner detected! Connecting...' });
-
-        // Connect directly to partner on Slot 1
-        const outgoing = this.peer.connect(idSlot1, { reliable: true });
-        this.setupConnection(outgoing);
+      this.mqttClient.on('close', () => {
+        this.handleDisconnect();
       });
 
-      this.peer.on('error', (err) => {
-        this.isConnecting = false;
-        if (err.type === 'unavailable-id') {
-          this.notifyStatus('error', { 
-            message: 'Access denied: 2 users are already connected with this password.' 
-          });
-        } else {
-          this.notifyStatus('error', { message: err.message || 'Connection error' });
-        }
+      this.mqttClient.on('error', (err) => {
+        console.warn('MQTT Network error:', err.message);
       });
-    };
 
-    trySlot1();
+    } catch (err) {
+      console.error('Could not initialize presence:', err);
+      this.notifyStatus('error', { message: 'Network connection failed' });
+    }
   }
 
-  setupConnection(conn) {
-    this.conn = conn;
+  handlePresenceMessage(data) {
+    if (data.status === 'offline') {
+      if (this.partnerId === data.sender || this.partnerOnline) {
+        console.log('⚡ Partner signed off:', data.sender);
+        this.partnerOnline = false;
+        this.partnerId = null;
+        this.notifyStatus('waiting', { message: 'Partner went offline.' });
+      }
+      return;
+    }
 
-    conn.on('open', () => {
-      this.notifyStatus('connected', { 
-        message: 'Connected with partner (2/2 online)' 
+    if (data.status === 'online') {
+      const now = Date.now();
+      this.lastPartnerSeen = now;
+      this.partnerId = data.sender;
+      
+      const latency = Math.max(8, Math.min(450, Math.round((now - (data.timestamp || now)))));
+
+      if (!this.partnerOnline) {
+        console.log('⚡ Partner came online:', data.sender);
+        this.partnerOnline = true;
+        this.notifyStatus('connected', { partnerId: data.sender, latency });
+      }
+
+      this.notifyStatus('latency', { latency });
+
+      // If partner is asking who is online (isPing), reply immediately with a pong!
+      if (data.isPing) {
+        this.publishPresence('online', false, true);
+      }
+    }
+  }
+
+  publishPresence(status, isPing = false, isPong = false) {
+    if (this.mqttClient && this.mqttClient.connected && this.presenceTopic) {
+      const payload = JSON.stringify({
+        sender: this.sessionId,
+        type: 'presence',
+        status: status,
+        isPing: isPing,
+        isPong: isPong,
+        timestamp: Date.now()
       });
-      this.startHeartbeat();
-    });
+      this.mqttClient.publish(this.presenceTopic, payload, { qos: 1 });
+    }
+  }
 
-    conn.on('data', (data) => {
-      if (!data || !data.event) return;
-
-      if (data.event === '__room_full__') {
-        this.notifyStatus('error', { message: 'Max 2 users already connected with this password' });
-        this.destroy();
-        return;
-      }
-
-      if (data.event === '__ping__') {
-        this.send('__pong__', { clientTime: data.payload.clientTime });
-        return;
-      }
-
-      if (data.event === '__pong__') {
-        const now = Date.now();
-        this.partnerLatency = Math.max(1, Math.round((now - data.payload.clientTime) / 2));
-        this.notifyStatus('latency', { latency: this.partnerLatency });
-        return;
-      }
-
-      this.emit(data.event, data.payload);
-    });
-
-    conn.on('close', () => {
-      this.stopHeartbeat();
-      this.conn = null;
-      if (this.slot === 1) {
-        this.notifyStatus('waiting', { 
-          message: 'Partner went offline. Waiting for partner (1/2 online).' 
+  publishOffline() {
+    if (this.mqttClient && this.mqttClient.connected && this.presenceTopic) {
+      try {
+        const payload = JSON.stringify({
+          sender: this.sessionId,
+          type: 'presence',
+          status: 'offline',
+          timestamp: Date.now()
         });
-      } else {
-        // If slot 2 lost connection, re-evaluate slots
-        this.notifyStatus('disconnected', { message: 'Partner disconnected. Reconnecting...' });
-        setTimeout(() => {
-          if (this.currentPassword) this.connectWithPassword(this.currentPassword);
-        }, 2000);
-      }
-    });
-
-    conn.on('error', (err) => {
-      console.error('Conn error:', err);
-      this.notifyStatus('error', { message: 'Connection interrupted' });
-    });
+        this.mqttClient.publish(this.presenceTopic, payload, { qos: 1 });
+      } catch (e) {}
+    }
   }
 
   startHeartbeat() {
     this.stopHeartbeat();
-    this.pingInterval = setInterval(() => {
-      if (this.conn && this.conn.open) {
-        this.send('__ping__', { clientTime: Date.now() });
+    // Send active presence heartbeat every 3 seconds
+    this.heartbeatTimer = setInterval(() => {
+      if (this.mqttClient && this.mqttClient.connected) {
+        this.publishPresence('online');
       }
-    }, 4000);
+    }, 3000);
   }
 
   stopHeartbeat() {
-    if (this.pingInterval) {
-      clearInterval(this.pingInterval);
-      this.pingInterval = null;
+    if (this.heartbeatTimer) {
+      clearInterval(this.heartbeatTimer);
+      this.heartbeatTimer = null;
     }
   }
 
+  startWatchdog() {
+    this.stopWatchdog();
+    // Check every second if partner's heartbeat stopped (> 6.5s)
+    this.watchdogTimer = setInterval(() => {
+      if (this.partnerOnline) {
+        const elapsed = Date.now() - this.lastPartnerSeen;
+        if (elapsed > 6500) {
+          console.log('⚡ Partner heartbeat timeout elapsed:', elapsed);
+          this.partnerOnline = false;
+          this.partnerId = null;
+          this.notifyStatus('waiting', { message: 'Partner went offline.' });
+        }
+      }
+    }, 1000);
+  }
+
+  stopWatchdog() {
+    if (this.watchdogTimer) {
+      clearInterval(this.watchdogTimer);
+      this.watchdogTimer = null;
+    }
+  }
+
+  handleDisconnect() {
+    this.partnerOnline = false;
+    this.notifyStatus('waiting', { message: 'Disconnected from network' });
+  }
+
   destroy() {
+    this.publishOffline();
     this.stopHeartbeat();
-    if (this.conn) {
-      try { this.conn.close(); } catch (e) {}
-      this.conn = null;
+    this.stopWatchdog();
+    if (this.mqttClient) {
+      try { this.mqttClient.end(true); } catch (e) {}
+      this.mqttClient = null;
     }
-    if (this.peer) {
-      try { this.peer.destroy(); } catch (e) {}
-      this.peer = null;
-    }
-    this.slot = null;
+    this.partnerOnline = false;
+    this.partnerId = null;
     this.isConnecting = false;
   }
 }

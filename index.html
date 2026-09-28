@@ -4,12 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>KHOJ — Journal of Culture, Discourse & Atomic Ideas</title>
-  <link rel="stylesheet" href="style.css?v=4.0">
+  <link rel="stylesheet" href="style.css?v=5.0">
   <link rel="manifest" href="manifest.json">
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=4.0')
+        navigator.serviceWorker.register('./sw.js?v=5.0')
           .then(reg => { reg.update(); })
           .catch(() => {});
       });
@@ -26,9 +26,6 @@
     <div class="system-right">
       <button id="btn-search-trigger" class="btn-search-trigger" title="Intellectual Search (or press Ctrl+K)">
         <span>🔍</span> SEARCH <span style="opacity: 0.6; font-size: 9px;">Ctrl+K</span>
-      </button>
-      <button id="btn-get-app" class="btn-download-app" onclick="handleGetAppClick()" title="Download & Install KHOJ App">
-        <span>⬇</span> GET APP
       </button>
       <button id="btn-refresh" class="btn-refresh" title="Click to refresh and load newest changes (or press Ctrl+R)">
         <span id="refresh-icon" class="refresh-icon">⟳</span> REFRESH
@@ -337,10 +334,9 @@
 
   <!-- Core Scripts -->
   <script src="mqtt.min.js"></script>
-  <script src="peerjs.min.js"></script>
-  <script src="data.js?v=4.0"></script>
-  <script src="network.js?v=4.0"></script>
-  <script src="store.js?v=4.0"></script>
-  <script src="app.js?v=4.0"></script>
+  <script src="data.js?v=5.0"></script>
+  <script src="network.js?v=5.0"></script>
+  <script src="store.js?v=5.0"></script>
+  <script src="app.js?v=5.0"></script>
 </body>
 </html>
