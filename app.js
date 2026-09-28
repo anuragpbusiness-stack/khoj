@@ -175,9 +175,9 @@ function renderFeed(state) {
   const posts = state.feed || [];
   if (posts.length === 0) {
     container.innerHTML = `
-      <div style="text-align: center; padding: 50px 20px; color: var(--muted-white); background: var(--surface-1); border: var(--border-default); box-shadow: var(--shadow-poster);">
-        <h4 style="font-family: var(--font-display); font-size: 24px; text-transform: uppercase; margin-bottom: 8px; color: var(--warm-white);">NO UPLOADS YET</h4>
-        <p style="font-family: var(--font-serif); font-size: 17px; font-style: italic;">
+      <div style="text-align: center; padding: 50px 20px; color: var(--text-tertiary); background: var(--surface-1); border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 6px;">
+        <h4 style="font-family: var(--font-display); font-size: 24px; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; color: var(--text-primary);">NO UPLOADS YET</h4>
+        <p style="font-family: var(--font-serif); font-size: 17px; font-style: italic; color: var(--text-secondary);">
           Upload a Podcast, Book, Atomic Idea, or Note from the tabs above. Everything uploaded will appear here in chronological order with exact date and time.
         </p>
       </div>
@@ -185,20 +185,9 @@ function renderFeed(state) {
     return;
   }
 
-  const typeColors = {
-    'PODCAST': 'var(--deep-green)',
-    'BOOK': 'var(--burnt-orange)',
-    'ATOMIC IDEA': 'var(--acid-yellow)',
-    'LIVE WALL NOTE': 'var(--signal-red)',
-    'VISION': 'var(--signal-red)',
-    'QUESTION': 'var(--acid-yellow)'
-  };
-
   container.innerHTML = posts.map(item => {
     const isPartner = item.author === 'Partner';
     const itemType = (item.type || item.tag || 'DISPATCH').toUpperCase();
-    const tagBg = typeColors[itemType] || 'var(--pure-black)';
-    const tagTextColor = itemType === 'ATOMIC IDEA' || itemType === 'QUESTION' ? 'var(--pure-black)' : '#fff';
     
     const dateObj = new Date(item.timestamp || Date.now());
     const formattedDate = dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
@@ -212,27 +201,27 @@ function renderFeed(state) {
       <article class="feed-card">
         <div class="feed-card-header">
           <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-            <span class="feed-author-badge ${isPartner ? 'partner' : ''}">UPLOADED BY: ${item.author.toUpperCase()}</span>
-            <span style="background: ${tagBg}; color: ${tagTextColor}; border: var(--border-default); padding: 2px 8px; font-size: 10px; font-weight: 800;">${itemType}</span>
-            <span style="font-family: var(--font-mono); font-size: 11px; opacity: 0.8; color: var(--muted-white);">${metaInfo}</span>
+            <span class="feed-author-badge ${isPartner ? 'partner' : ''}">${item.author.toUpperCase()}</span>
+            <span class="tag-badge">${itemType}</span>
+            <span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-tertiary);">${metaInfo}</span>
           </div>
-          <div style="font-family: var(--font-mono); font-size: 11px; font-weight: 800; background: var(--surface-2); color: var(--warm-white); border: var(--border-default); padding: 2px 8px;">
-            📅 ${formattedDate} · ⏰ ${formattedTime}
+          <div style="font-family: var(--font-mono); font-size: 11px; color: var(--text-tertiary);">
+            ${formattedDate} · ${formattedTime}
           </div>
         </div>
 
         <div style="margin-bottom: 12px;">
-          <h3 style="font-family: var(--font-display); font-size: 24px; text-transform: uppercase; line-height: 1; margin-bottom: 8px; color: var(--warm-white);">
+          <h3 style="font-family: var(--font-display); font-size: 22px; text-transform: uppercase; line-height: 1.05; margin-bottom: 8px; letter-spacing: 0.4px; color: var(--text-primary);">
             ${titleText}
           </h3>
           ${bodyText ? `<div class="feed-content" style="margin-bottom: 0;">"${bodyText}"</div>` : ''}
         </div>
 
         <div class="feed-footer">
-          <span style="color: var(--deep-green); font-weight: 700;">● SYNCED LIVE BETWEEN BOTH OF YOU</span>
+          <span style="color: var(--deep-green); font-weight: 600;">● SYNCED LIVE</span>
           <div style="display: flex; gap: 8px;">
             <button class="btn-secondary" style="padding: 4px 10px; font-size: 11px;" onclick="pinToWall('${itemType}', '${(titleText + ' - ' + bodyText).replace(/'/g, "\\'")}')">PIN TO WALL</button>
-            <button style="background:none; border:none; color: var(--signal-red); font-weight:700; cursor:pointer;" onclick="deleteFeedPost('${item.id}')">✕</button>
+            <button style="background:none; border:none; color: var(--text-tertiary); font-weight:700; cursor:pointer;" onclick="deleteFeedPost('${item.id}')">✕</button>
           </div>
         </div>
       </article>
@@ -254,16 +243,16 @@ function renderConversations(state) {
   const userPodcasts = state.podcasts || [];
 
   const userHtml = userPodcasts.map(p => `
-    <article class="conversation-card" style="border-color: var(--signal-red);">
-      <div class="card-top-tag" style="background: var(--signal-red); color: #fff;">
-        <span>SHARED BY PARTNER</span>
-        <button style="background:none;border:none;color:#fff;cursor:pointer;font-weight:700;" onclick="deletePodcast('${p.id}')">✕</button>
+    <article class="conversation-card">
+      <div class="card-top-tag">
+        <span class="tag-badge">SHARED BY PARTNER</span>
+        <button style="background:none;border:none;color:var(--text-tertiary);cursor:pointer;font-weight:700;" onclick="deletePodcast('${p.id}')">✕</button>
       </div>
       <div class="card-body">
         <div>
           <h3 class="card-title">${p.title}</h3>
           <p class="card-desc"><b>Takeaways:</b> ${p.takeaways || 'No takeaways provided.'}</p>
-          ${p.url ? `<p style="font-family: var(--font-mono); font-size: 11px; margin-top: 8px;"><a href="${p.url}" target="_blank" style="color: var(--signal-red);">Open Source Link ↗</a></p>` : ''}
+          ${p.url ? `<p style="font-family: var(--font-mono); font-size: 11px; margin-top: 8px;"><a href="${p.url}" target="_blank" style="color: var(--text-primary);">Open Source Link ↗</a></p>` : ''}
         </div>
         <div class="card-footer-action">
           <span>ADDED: ${new Date(p.created).toLocaleDateString()}</span>
@@ -276,7 +265,7 @@ function renderConversations(state) {
   const editorialHtml = editorialConvs.map(item => `
     <article class="conversation-card">
       <div class="card-top-tag">
-        <span style="background: ${item.accent}; color: #fff; padding: 2px 6px;">${item.tag} #${item.number}</span>
+        <span class="tag-badge">${item.tag} #${item.number}</span>
         <span>${item.duration}</span>
       </div>
       <div class="card-image-hero">
@@ -307,15 +296,15 @@ function renderPeople(state) {
 
   container.innerHTML = people.map(p => `
     <div class="person-poster">
-      <div class="person-cutout-wrap" style="border-bottom-color: ${p.accent};">
+      <div class="person-cutout-wrap">
         <img src="${p.image}" alt="${p.name}">
         <span class="person-badge">${p.field}</span>
       </div>
       <h3 class="person-name">${p.name}</h3>
-      <div class="person-field" style="color: ${p.accent};">${p.role || 'BUILDER & THINKER'}</div>
+      <div class="person-field">${p.role || 'BUILDER & THINKER'}</div>
       <div class="person-quote">"${p.quote}"</div>
       
-      <div style="font-family: var(--font-mono); font-size: 11px; margin-top: auto; border-top: var(--border-default); padding-top: 10px; color: var(--muted-white);">
+      <div style="font-family: var(--font-mono); font-size: 11px; margin-top: auto; border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 10px; color: var(--text-tertiary);">
         <div style="margin-bottom: 4px;"><b>FEATURED IN:</b> ${p.conversationsCount || 4} CONVERSATIONS · ${p.ideasCount || 12} IDEAS · ${p.eventsCount || 3} EVENTS</div>
         <div><b>PROJECTS:</b> ${p.projects.join(', ')}</div>
       </div>
@@ -332,17 +321,17 @@ function renderAtomicIdeas(state) {
   const userIdeas = (state.vision || []).filter(v => v.category === 'Atomic Idea');
 
   const userHtml = userIdeas.map((u, i) => `
-    <div class="atomic-idea-card" style="border-color: var(--signal-red);">
+    <div class="atomic-idea-card">
       <div>
         <div class="idea-header">
-          <span class="idea-badge" style="background: var(--signal-red); color: #fff;">PARTNER ATOMIC IDEA</span>
-          <button style="background:none;border:none;cursor:pointer;color:var(--signal-red);font-weight:700;" onclick="deleteIdea('${u.id}')">✕</button>
+          <span class="idea-badge">PARTNER IDEA</span>
+          <button style="background:none;border:none;cursor:pointer;color:var(--text-tertiary);font-weight:700;" onclick="deleteIdea('${u.id}')">✕</button>
         </div>
         <h3 class="idea-title">${u.title}</h3>
         <div class="idea-quote">"${u.description}"</div>
       </div>
       <div class="idea-footer">
-        <span>Added just now · Dual-synced</span>
+        <span>Dual-synced live</span>
         <button class="btn-secondary" style="padding: 4px 10px; font-size: 11px;" onclick="pinToWall('${u.title}', '${u.description}')">PIN TO WALL</button>
       </div>
     </div>
@@ -353,7 +342,7 @@ function renderAtomicIdeas(state) {
       <div>
         <div class="idea-header">
           <span class="idea-badge">IDEA #${idea.number}</span>
-          <span style="color: var(--muted-white);">${idea.source}</span>
+          <span style="color: var(--text-tertiary);">${idea.source}</span>
         </div>
         <h3 class="idea-title">${idea.title}</h3>
         <div class="idea-quote">"${idea.quote}"</div>
@@ -377,14 +366,14 @@ function renderBooks(state) {
   const userBooks = state.books || [];
 
   const userHtml = userBooks.map(b => `
-    <div class="atomic-idea-card" style="border-left: 6px solid var(--deep-green);">
+    <div class="atomic-idea-card">
       <div>
         <div class="idea-header">
-          <span class="idea-badge" style="background: var(--deep-green); color: #fff;">${b.status}</span>
-          <button style="background:none;border:none;cursor:pointer;color:var(--signal-red);font-weight:700;" onclick="deleteBook('${b.id}')">✕</button>
+          <span class="idea-badge">${b.status}</span>
+          <button style="background:none;border:none;cursor:pointer;color:var(--text-tertiary);font-weight:700;" onclick="deleteBook('${b.id}')">✕</button>
         </div>
         <h3 class="idea-title">${b.title}</h3>
-        <div style="font-family: var(--font-mono); font-size: 12px; margin-bottom: 12px; font-weight: 700; color: var(--muted-white);">BY ${b.author}</div>
+        <div style="font-family: var(--font-mono); font-size: 11px; margin-bottom: 12px; font-weight: 600; color: var(--text-tertiary);">BY ${b.author}</div>
         <div class="idea-quote">"${b.notes}"</div>
       </div>
       <div class="idea-footer">
@@ -395,16 +384,16 @@ function renderBooks(state) {
   `).join('');
 
   const canonHtml = canonicalBooks.map(b => `
-    <div class="atomic-idea-card" style="border-left: 6px solid ${b.accent};">
+    <div class="atomic-idea-card">
       <div>
         <div class="idea-header">
           <span class="idea-badge">${b.status}</span>
           <span>CANON</span>
         </div>
         <h3 class="idea-title">${b.title}</h3>
-        <div style="font-family: var(--font-mono); font-size: 12px; margin-bottom: 12px; font-weight: 700; color: var(--muted-white);">BY ${b.author}</div>
+        <div style="font-family: var(--font-mono); font-size: 11px; margin-bottom: 12px; font-weight: 600; color: var(--text-tertiary);">BY ${b.author}</div>
         <div class="idea-quote">"${b.quote}"</div>
-        <p style="font-size: 13px; color: var(--muted-white); line-height: 1.4; margin-top: 10px;"><b>Core takeaway:</b> ${b.takeaway}</p>
+        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-top: 10px;"><b>Core takeaway:</b> ${b.takeaway}</p>
       </div>
       <div class="idea-footer">
         <span>RECOMMENDED</span>
@@ -423,13 +412,13 @@ function renderEvents() {
 
   const events = window.INITIAL_EDITORIAL_DATA ? window.INITIAL_EDITORIAL_DATA.events : [];
   container.innerHTML = events.map(ev => `
-    <div class="event-poster-card" style="border-top: 6px solid ${ev.accent};">
+    <div class="event-poster-card">
       <div>
-        <div class="event-date-large" style="color: ${ev.accent};">${ev.date}</div>
+        <div class="event-date-large">${ev.date}</div>
         <div class="event-city-tag">${ev.city} · ${ev.year}</div>
         <h3 class="event-title-huge">${ev.title}</h3>
         <div class="event-desc">"${ev.desc}"</div>
-        <div style="font-family: var(--font-mono); font-size: 11px; color: var(--muted-white); margin-bottom: 14px;">
+        <div style="font-family: var(--font-mono); font-size: 11px; color: var(--text-tertiary); margin-bottom: 14px;">
           📍 ${ev.venue}
         </div>
       </div>
@@ -450,10 +439,10 @@ function renderLiveIdeaWall(state) {
 
   if (notes.length === 0) {
     container.innerHTML = `
-      <div style="text-align: center; padding: 60px 20px; color: var(--muted-white);">
-        <div style="font-size: 48px; margin-bottom: 16px;">📌</div>
-        <h3 style="font-family: var(--font-display); font-size: 28px; text-transform: uppercase; color: var(--warm-white);">THE WALL IS BLANK</h3>
-        <p style="font-family: var(--font-serif); font-size: 18px; font-style: italic;">
+      <div style="text-align: center; padding: 60px 20px; color: var(--text-tertiary);">
+        <div style="font-size: 40px; margin-bottom: 16px;">✦</div>
+        <h3 style="font-family: var(--font-display); font-size: 26px; text-transform: uppercase; color: var(--text-primary); letter-spacing: 0.5px;">THE WALL IS BLANK</h3>
+        <p style="font-family: var(--font-serif); font-size: 17px; font-style: italic; color: var(--text-secondary); margin-top: 6px;">
           Click "+ PIN TO WALL" above to pin your first vision note, quote, or raw question. It appears live on both screens.
         </p>
       </div>
@@ -461,13 +450,11 @@ function renderLiveIdeaWall(state) {
     return;
   }
 
-  container.innerHTML = notes.map((note, index) => {
-    const rotation = (index % 2 === 0 ? 1 : -1) * ((index % 3) + 1.2);
+  container.innerHTML = notes.map((note) => {
     return `
-      <div class="tape-pin-note" style="transform: rotate(${rotation}deg);">
-        <div class="tape-strip"></div>
+      <div class="tape-pin-note">
         <div class="note-author">PINNED · ${new Date(note.created).toLocaleDateString()}</div>
-        <h4 style="font-family: var(--font-display); font-size: 18px; text-transform: uppercase; margin-bottom: 6px; color: var(--warm-white);">${note.title}</h4>
+        <h4 style="font-family: var(--font-display); font-size: 18px; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.4px; color: var(--text-primary);">${note.title}</h4>
         <div class="note-text">"${note.description}"</div>
         <div class="note-actions">
           <span style="color: var(--deep-green);">● LIVE SYNCED</span>
@@ -486,8 +473,8 @@ function renderCircles() {
   const circles = window.INITIAL_EDITORIAL_DATA ? window.INITIAL_EDITORIAL_DATA.circles : [];
   container.innerHTML = circles.map(c => `
     <div class="conversation-card">
-      <div class="card-top-tag" style="background: ${c.accent}; color: #fff;">
-        <span>${c.tag}</span>
+      <div class="card-top-tag">
+        <span class="tag-badge">${c.tag}</span>
         <span>${c.members}</span>
       </div>
       <div class="card-body">
@@ -557,10 +544,10 @@ function performSearch(query) {
     html += `
       <div class="search-result-item" onclick="closeSearchModal(); switchTab('conversations'); openMediaPlayer('listen', '00:00', '${c.title}')">
         <div>
-          <span class="search-item-type" style="background: var(--signal-red); color:#fff;">CONVERSATION</span>
+          <span class="search-item-type">CONVERSATION</span>
           <div class="search-item-title">${c.title}</div>
         </div>
-        <span style="font-family: var(--font-mono); font-size: 11px; color: var(--muted-white);">LISTEN →</span>
+        <span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-tertiary);">LISTEN →</span>
       </div>
     `;
   });
@@ -569,10 +556,10 @@ function performSearch(query) {
     html += `
       <div class="search-result-item" onclick="closeSearchModal(); switchTab('people');">
         <div>
-          <span class="search-item-type" style="background: var(--deep-green); color:#fff;">PERSON</span>
+          <span class="search-item-type">PERSON</span>
           <div class="search-item-title">${p.name} · ${p.field}</div>
         </div>
-        <span style="font-family: var(--font-mono); font-size: 11px; color: var(--muted-white);">PROFILE →</span>
+        <span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-tertiary);">PROFILE →</span>
       </div>
     `;
   });
@@ -581,10 +568,10 @@ function performSearch(query) {
     html += `
       <div class="search-result-item" onclick="closeSearchModal(); switchTab('ideas');">
         <div>
-          <span class="search-item-type" style="background: var(--acid-yellow); color:#000;">ATOMIC IDEA</span>
+          <span class="search-item-type">ATOMIC IDEA</span>
           <div class="search-item-title">${i.title}</div>
         </div>
-        <span style="font-family: var(--font-mono); font-size: 11px; color: var(--muted-white);">VIEW →</span>
+        <span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-tertiary);">VIEW →</span>
       </div>
     `;
   });
@@ -593,10 +580,10 @@ function performSearch(query) {
     html += `
       <div class="search-result-item" onclick="closeSearchModal(); switchTab('books');">
         <div>
-          <span class="search-item-type" style="background: var(--burnt-orange); color:#fff;">BOOK</span>
+          <span class="search-item-type">BOOK</span>
           <div class="search-item-title">${b.title} BY ${b.author}</div>
         </div>
-        <span style="font-family: var(--font-mono); font-size: 11px; color: var(--muted-white);">CANON →</span>
+        <span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-tertiary);">CANON →</span>
       </div>
     `;
   });
@@ -605,10 +592,10 @@ function performSearch(query) {
     html += `
       <div class="search-result-item" onclick="closeSearchModal(); switchTab('events');">
         <div>
-          <span class="search-item-type" style="background: var(--acid-yellow); color:#000;">EVENT</span>
+          <span class="search-item-type">EVENT</span>
           <div class="search-item-title">${e.title} · ${e.city} (${e.date})</div>
         </div>
-        <span style="font-family: var(--font-mono); font-size: 11px; color: var(--muted-white);">RSVP →</span>
+        <span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-tertiary);">RSVP →</span>
       </div>
     `;
   });
@@ -617,16 +604,16 @@ function performSearch(query) {
     html += `
       <div class="search-result-item" onclick="closeSearchModal(); switchTab('circles');">
         <div>
-          <span class="search-item-type" style="background: var(--muted-purple); color:#fff;">CIRCLE</span>
+          <span class="search-item-type">CIRCLE</span>
           <div class="search-item-title">${c.name}</div>
         </div>
-        <span style="font-family: var(--font-mono); font-size: 11px; color: var(--muted-white);">JOIN →</span>
+        <span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-tertiary);">JOIN →</span>
       </div>
     `;
   });
 
   if (!html) {
-    html = `<div style="text-align: center; padding: 30px; color: var(--muted-white); font-family: var(--font-serif); font-style: italic;">No records found matching "${query}".</div>`;
+    html = `<div style="text-align: center; padding: 30px; color: var(--text-tertiary); font-family: var(--font-serif); font-style: italic;">No records found matching "${query}".</div>`;
   }
 
   resultsContainer.innerHTML = html;
@@ -686,9 +673,9 @@ function renderChaptersList(chapters, activeTime) {
 
   container.innerHTML = chapters.map(ch => `
     <div class="chapter-row ${ch.time === activeTime ? 'active' : ''}" onclick="selectChapter('${ch.time}')">
-      <span style="font-weight: 700; color: ${ch.time === activeTime ? 'var(--signal-red)' : 'var(--warm-white)'};">${ch.time}</span>
+      <span style="font-weight: 600; color: ${ch.time === activeTime ? '#FFFFFF' : 'var(--text-tertiary)'};">${ch.time}</span>
       <span>${ch.title}</span>
-      <span style="color: var(--muted-white); font-size: 11px;">JUMP ↗</span>
+      <span style="color: var(--text-tertiary); font-size: 11px;">JUMP ↗</span>
     </div>
   `).join('');
 }
@@ -737,14 +724,14 @@ function toggleAudioPlay() {
 
   if (isAudioPlaying) {
     btn.textContent = '⏸ PAUSE';
-    btn.style.background = 'var(--acid-yellow)';
+    btn.style.background = '#E4E4E7';
     audioPlayTimer = setInterval(() => {
       currentAudioSeconds = Math.min(totalAudioSeconds, currentAudioSeconds + Math.floor(audioSpeed));
       updateAudioDisplay();
     }, 1000);
   } else {
     btn.textContent = '▶ PLAY';
-    btn.style.background = 'var(--warm-white)';
+    btn.style.background = '#FFFFFF';
     clearInterval(audioPlayTimer);
   }
 }

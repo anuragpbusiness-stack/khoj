@@ -51,13 +51,13 @@
 
   <!-- Editorial Navigation Bar -->
   <nav class="editorial-nav">
-    <button class="nav-tab active" data-tab="feed">✦ The Feed</button>
+    <button class="nav-tab active" data-tab="feed">The Feed</button>
     <button class="nav-tab" data-tab="conversations">Podcasts & Dispatches</button>
     <button class="nav-tab" data-tab="people">People</button>
     <button class="nav-tab" data-tab="ideas">Atomic Ideas</button>
     <button class="nav-tab" data-tab="books">Books & Canon</button>
     <button class="nav-tab" data-tab="events">Events & Posters</button>
-    <button class="nav-tab active-accent" data-tab="ideawall">✦ Live Idea Wall</button>
+    <button class="nav-tab" data-tab="ideawall">✦ Live Idea Wall</button>
     <button class="nav-tab" data-tab="circles">Circles</button>
   </nav>
 
@@ -70,11 +70,11 @@
         <div>
           <span class="sub-tag">ACTIVITY & DISPATCHES</span>
           <h2 class="huge-headline">SHARED FEED</h2>
-          <p style="font-family: var(--font-serif); font-size: 17px; font-style: italic; margin-top: 4px; color: var(--muted-white);">
+          <p style="font-family: var(--font-serif); font-size: 17px; font-style: italic; margin-top: 4px; color: var(--text-secondary);">
             Chronological stream of all podcasts, books, atomic ideas, and notes uploaded from your tabs.
           </p>
         </div>
-        <span style="font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--deep-green);">● ALL UPLOADS SAVED & TIMESTAMPTED</span>
+        <span style="font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: var(--text-tertiary);">● ALL UPLOADS SAVED & TIMESTAMPTED</span>
       </div>
 
       <div id="feed-stream-container" class="feed-stream">
@@ -92,9 +92,9 @@
             <div>
               <div class="hero-meta-strip">
                 <span class="tag-red">FEATURED INQUIRY · #042</span>
-                <span style="color: var(--muted-white);">104 MIN</span>
-                <span style="opacity: 0.4;">/</span>
-                <span style="color: var(--acid-yellow); font-weight: 700;">DEEPTECH & CULTURE</span>
+                <span>104 MIN</span>
+                <span style="opacity: 0.3;">/</span>
+                <span style="color: var(--text-tertiary); font-weight: 600;">DEEPTECH & CULTURE</span>
               </div>
               <h2 class="hero-title">WHY IS EVERYONE BUILDING THE SAME THING?</h2>
               <p class="hero-subtitle">
@@ -237,9 +237,9 @@
     <section id="tab-ideawall" class="tab-section" style="display: none;">
       <div class="editorial-heading-group" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 14px;">
         <div>
-          <span class="sub-tag" style="background: var(--signal-red);">SIGNATURE COLLABORATION</span>
+          <span class="sub-tag">SIGNATURE COLLABORATION</span>
           <h2 class="huge-headline">THE LIVE IDEA WALL</h2>
-          <p style="font-family: var(--font-serif); font-size: 18px; font-style: italic; margin-top: 6px; color: var(--muted-white);">
+          <p style="font-family: var(--font-serif); font-size: 18px; font-style: italic; margin-top: 6px; color: var(--text-secondary);">
             A shared tactile canvas for the two of you. Post visions, raw questions, book notes, and sudden thoughts. Synchronizes live in real-time.
           </p>
         </div>
@@ -289,7 +289,7 @@
   <div id="search-modal-backdrop" class="search-modal-backdrop" style="display: none;">
     <div class="search-modal">
       <div class="search-modal-header">
-        <span style="font-family: var(--font-mono); font-size: 11px; font-weight: 800; color: var(--acid-yellow);">✦ INTELLECTUAL SEARCH</span>
+        <span style="font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--text-primary); letter-spacing: 0.5px;">🔍 INTELLECTUAL SEARCH</span>
         <button style="background: none; border: none; color: var(--warm-white); font-size: 16px; cursor: pointer; font-weight: 700;" onclick="closeSearchModal()">✕</button>
       </div>
 
@@ -377,8 +377,8 @@
         <!-- Mode 3: Read (Highlighted Transcript) -->
         <div id="player-mode-read-view" style="display: none;">
           <div style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-family: var(--font-mono); font-size: 11px; font-weight: 800; color: var(--acid-yellow);">VERBATIM TRANSCRIPT ARCHIVE</span>
-            <span style="font-family: var(--font-mono); font-size: 11px; color: var(--muted-white);">CLICK '⚡ EXTRACT IDEA' TO CAPTURE</span>
+            <span style="font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--text-primary); letter-spacing: 0.5px;">VERBATIM TRANSCRIPT ARCHIVE</span>
+            <span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-tertiary);">CLICK '⚡ EXTRACT IDEA' TO CAPTURE</span>
           </div>
           <div class="transcript-flow" id="player-transcript-container">
             <!-- Rendered by JS -->
