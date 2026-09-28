@@ -1510,18 +1510,20 @@ body {
    16. WHATSAPP-STYLE CHAT
    ========================================================================== */
 
-/* The tab section needs 0 padding so chat fills edge to edge */
+/* Chat tab: escape the main-wrapper's padding entirely */
 #tab-chat {
+  /* Pull out of the 24px side padding and 32px top padding */
+  margin: -32px -24px -80px !important;
   padding: 0 !important;
-  margin: 0;
 }
 
-/* Outer shell: fills remaining viewport height */
+/* Outer shell: fills from just below nav to bottom of viewport */
 .wa-shell {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 180px);
-  min-height: 500px;
+  /* masthead(44) + magazine-header(~128) + nav(44) = ~216px */
+  height: calc(100vh - 216px);
+  min-height: 480px;
   background: var(--void);
   position: relative;
   overflow: hidden;

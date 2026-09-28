@@ -4,12 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>KHOJ — Journal of Culture, Discourse & Atomic Ideas</title>
-  <link rel="stylesheet" href="style.css?v=5.1">
+  <link rel="stylesheet" href="style.css?v=5.3">
   <link rel="manifest" href="manifest.json">
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=5.1')
+        navigator.serviceWorker.register('./sw.js?v=5.3')
           .then(reg => { reg.update(); })
           .catch(() => {});
       });
@@ -368,9 +368,9 @@
 
   <!-- Core Scripts -->
   <script src="mqtt.min.js"></script>
-  <script src="data.js?v=5.2"></script>
-  <script src="network.js?v=5.2"></script>
-  <script src="store.js?v=5.2"></script>
-  <script src="app.js?v=5.2"></script>
+  <script src="data.js?v=5.3"></script>
+  <script src="network.js?v=5.3"></script>
+  <script src="store.js?v=5.3"></script>
+  <script src="app.js?v=5.3"></script>
 </body>
 </html>
