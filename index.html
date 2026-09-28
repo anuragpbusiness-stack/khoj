@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KHOJ — Journal of Culture, Discourse & Atomic Ideas</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+
+  <!-- Top System Masthead -->
+  <header class="system-masthead">
+    <div class="system-left">
+      <span class="issue-tag">ISSUE #01</span>
+      <span>CULTURE // DISCOURSE // IDEAS</span>
+      <span style="opacity: 0.6;">·</span>
+      <span>PRIVATE DISCOURSE (2/2)</span>
+    </div>
+    <div class="system-right">
+      <button id="btn-search-trigger" class="btn-search-trigger" title="Intellectual Search (or press Ctrl+K)">
+        <span>🔍</span> SEARCH <span style="opacity: 0.6; font-size: 9px;">Ctrl+K</span>
+      </button>
+      <button id="btn-refresh" class="btn-refresh" title="Click to refresh and load newest changes (or press Ctrl+R)">
+        <span id="refresh-icon" class="refresh-icon">⟳</span> REFRESH
+      </button>
+      <div id="sync-badge" class="live-badge" title="Feed is synced to cloud">
+        <span id="sync-dot" class="live-dot"></span>
+        <span id="sync-status-text">FEED SYNCED</span>
+      </div>
+      <div id="partner-badge" class="live-badge">
+        <span id="partner-dot" class="partner-dot offline"></span>
+        <span id="partner-status-text">PARTNER OFFLINE</span>
+      </div>
+      <span id="ping-readout" style="display:none;">32MS</span>
+      <span style="background: var(--surface-2); color: var(--warm-white); border: var(--border-default); padding: 2px 7px;">KEY: vision.aa</span>
+    </div>
+  </header>
+
+  <!-- Magazine Title Header -->
+  <div class="magazine-header">
+    <div class="brand-row">
+      <h1 class="brand-title">K H O J<span class="brand-star">✦</span></h1>
+      <p class="brand-manifesto">
+        "Question the consensus. Build the unbuilt. A private journal for high-signal discourse, unconventional people, and atomic ideas."
+      </p>
+    </div>
+  </div>
+
+  <!-- Editorial Navigation Bar -->
+  <nav class="editorial-nav">
+    <button class="nav-tab active" data-tab="feed">✦ The Feed</button>
+    <button class="nav-tab" data-tab="conversations">Podcasts & Dispatches</button>
+    <button class="nav-tab" data-tab="people">People</button>
+    <button class="nav-tab" data-tab="ideas">Atomic Ideas</button>
+    <button class="nav-tab" data-tab="books">Books & Canon</button>
+    <button class="nav-tab" data-tab="events">Events & Posters</button>
+    <button class="nav-tab active-accent" data-tab="ideawall">✦ Live Idea Wall</button>
+    <button class="nav-tab" data-tab="circles">Circles</button>
+  </nav>
+
+  <!-- Main Content Wrapper -->
+  <main class="main-wrapper">
+
+    <!-- 1. CHRONOLOGICAL UPLOADS FEED TAB (DEFAULT) -->
+    <section id="tab-feed" class="tab-section">
+      <div class="editorial-heading-group" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px;">
+        <div>
+          <span class="sub-tag">ACTIVITY & DISPATCHES</span>
+          <h2 class="huge-headline">SHARED FEED</h2>
+          <p style="font-family: var(--font-serif); font-size: 17px; font-style: italic; margin-top: 4px; color: var(--muted-white);">
+            Chronological stream of all podcasts, books, atomic ideas, and notes uploaded from your tabs.
+          </p>
+        </div>
+        <span style="font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--deep-green);">● ALL UPLOADS SAVED & TIMESTAMPTED</span>
+      </div>
+
+      <div id="feed-stream-container" class="feed-stream">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- 2. CONVERSATIONS & PODCASTS TAB -->
+    <section id="tab-conversations" class="tab-section" style="display: none;">
+      
+      <!-- Featured Editorial Hero Poster (Master Brief Section 17, 18, 20) -->
+      <article class="front-page-hero">
+        <div class="hero-grid">
+          <div class="hero-content">
+            <div>
+              <div class="hero-meta-strip">
+                <span class="tag-red">FEATURED INQUIRY · #042</span>
+                <span style="color: var(--muted-white);">104 MIN</span>
+                <span style="opacity: 0.4;">/</span>
+                <span style="color: var(--acid-yellow); font-weight: 700;">DEEPTECH & CULTURE</span>
+              </div>
+              <h2 class="hero-title">WHY IS EVERYONE BUILDING THE SAME THING?</h2>
+              <p class="hero-subtitle">
+                A two-hour raw inquiry into copycat capital, original Indian manufacturing, and what happens when young builders stop asking for permission.
+              </p>
+              <div class="pull-quote-box">
+                "Cheap capital creates lazy monopolies. The best things coming out of India right now are built in dusty industrial sheds, not glass towers."
+              </div>
+            </div>
+
+            <div>
+              <div class="hero-actions">
+                <button class="btn-primary" onclick="openMediaPlayer('watch')">▶ WATCH</button>
+                <button class="btn-secondary" onclick="openMediaPlayer('listen')">🎧 LISTEN</button>
+                <button class="btn-secondary" onclick="openMediaPlayer('read')">📄 READ TRANSCRIPT</button>
+              </div>
+              <div style="margin-top: 18px; font-family: var(--font-mono); font-size: 11px; color: var(--muted-white); display: flex; gap: 14px; flex-wrap: wrap;">
+                <span>CHAPTERS:</span>
+                <span style="cursor: pointer; text-decoration: underline;" onclick="openMediaPlayer('listen', '00:00')">00:00 THE QUESTION</span>
+                <span style="cursor: pointer; text-decoration: underline;" onclick="openMediaPlayer('listen', '14:20')">14:20 SOFTWARE MARGINS</span>
+                <span style="cursor: pointer; text-decoration: underline;" onclick="openMediaPlayer('listen', '38:45')">38:45 TAMIL NADU & SURAT</span>
+                <span style="cursor: pointer; text-decoration: underline;" onclick="openMediaPlayer('listen', '67:10')">67:10 INDEPENDENCE</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="hero-visual">
+            <div class="cutout-composition">
+              <div class="cutout-stamp">BENGALURU × PUNE</div>
+              
+              <div class="cutout-card one">
+                <div class="cutout-img-frame">
+                  <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80" alt="Devansh Nair">
+                </div>
+                <div class="cutout-caption">
+                  <div class="cutout-name">Devansh Nair</div>
+                  <div class="cutout-role">ROBOTICS ARCHITECT</div>
+                </div>
+              </div>
+
+              <div class="cutout-card two">
+                <div class="cutout-img-frame">
+                  <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80" alt="Meera Sen">
+                </div>
+                <div class="cutout-caption">
+                  <div class="cutout-name">Meera Sen</div>
+                  <div class="cutout-role">SYNTHETICS & MATERIALS</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <div class="editorial-heading-group" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 14px; margin-top: 40px;">
+        <div>
+          <span class="sub-tag">ARCHIVE & DISPATCHES</span>
+          <h2 class="huge-headline">ALL CONVERSATIONS</h2>
+        </div>
+        <button class="btn-primary" onclick="openAddModal('podcast')">+ SHARE PODCAST EPISODE</button>
+      </div>
+
+      <div class="editorial-grid" id="conversations-archive-grid">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- 3. PEOPLE TAB -->
+    <section id="tab-people" class="tab-section" style="display: none;">
+      <div class="editorial-heading-group" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 14px;">
+        <div>
+          <span class="sub-tag">EDITORIAL CHARACTERS & BUILDERS</span>
+          <h2 class="huge-headline">HIGH-SIGNAL PEOPLE</h2>
+          <p style="font-family: var(--font-serif); font-size: 17px; font-style: italic; color: var(--muted-white); margin-top: 4px;">
+            Intellectual identity over vanity metrics. Profiles of craft, systems, and uncompromised perspective.
+          </p>
+        </div>
+        <button class="btn-primary" onclick="openAddModal('person')">+ ADD PERSON</button>
+      </div>
+
+      <div class="people-grid" id="people-directory-grid">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- 4. ATOMIC IDEAS TAB -->
+    <section id="tab-ideas" class="tab-section" style="display: none;">
+      <div class="editorial-heading-group" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 14px;">
+        <div>
+          <span class="sub-tag">ATOMIC PIECES OF KNOWLEDGE</span>
+          <h2 class="huge-headline">ATOMIC IDEAS</h2>
+          <p style="font-family: var(--font-serif); font-size: 17px; font-style: italic; color: var(--muted-white); margin-top: 4px;">
+            Sharp, counter-intuitive truths extracted from long conversations and field observation.
+          </p>
+        </div>
+        <button class="btn-primary" onclick="openAddModal('idea')">+ CAPTURE ATOMIC IDEA</button>
+      </div>
+
+      <div class="ideas-wall-container" id="atomic-ideas-grid">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- 5. BOOKS TAB -->
+    <section id="tab-books" class="tab-section" style="display: none;">
+      <div class="editorial-heading-group" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 14px;">
+        <div>
+          <span class="sub-tag">CANONICAL READING</span>
+          <h2 class="huge-headline">BOOKS & HIGHLIGHTS</h2>
+          <p style="font-family: var(--font-serif); font-size: 17px; font-style: italic; color: var(--muted-white); margin-top: 4px;">
+            Enduring mental models, corporate histories, and design discipline.
+          </p>
+        </div>
+        <button class="btn-primary" onclick="openAddModal('book')">+ ADD BOOK</button>
+      </div>
+
+      <div class="ideas-wall-container" id="books-grid">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- 6. EVENTS & POSTERS TAB (Master Brief Section 25) -->
+    <section id="tab-events" class="tab-section" style="display: none;">
+      <div class="editorial-heading-group" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 14px;">
+        <div>
+          <span class="sub-tag">DIGITAL POSTERS & SALONS</span>
+          <h2 class="huge-headline">CANONICAL EVENTS</h2>
+          <p style="font-family: var(--font-serif); font-size: 17px; font-style: italic; color: var(--muted-white); margin-top: 4px;">
+            High-density physical gatherings designed around intellectual conflict, not polite networking.
+          </p>
+        </div>
+      </div>
+
+      <div class="editorial-grid" id="events-posters-grid">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- 7. LIVE IDEA WALL (SIGNATURE INTERACTION - Master Brief Section 32) -->
+    <section id="tab-ideawall" class="tab-section" style="display: none;">
+      <div class="editorial-heading-group" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 14px;">
+        <div>
+          <span class="sub-tag" style="background: var(--signal-red);">SIGNATURE COLLABORATION</span>
+          <h2 class="huge-headline">THE LIVE IDEA WALL</h2>
+          <p style="font-family: var(--font-serif); font-size: 18px; font-style: italic; margin-top: 6px; color: var(--muted-white);">
+            A shared tactile canvas for the two of you. Post visions, raw questions, book notes, and sudden thoughts. Synchronizes live in real-time.
+          </p>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn-primary" onclick="openAddModal('wall-note')">+ PIN TO WALL</button>
+        </div>
+      </div>
+
+      <div class="live-wall-board" id="interactive-wall-container">
+        <!-- Pinned notes rendered here -->
+      </div>
+    </section>
+
+    <!-- 8. CIRCLES TAB -->
+    <section id="tab-circles" class="tab-section" style="display: none;">
+      <div class="editorial-heading-group">
+        <span class="sub-tag">SELECTIVE COMMUNITIES</span>
+        <h2 class="huge-headline">CURATED CIRCLES</h2>
+        <p style="font-family: var(--font-serif); font-size: 17px; font-style: italic; color: var(--muted-white); margin-top: 4px;">
+          Private, curated rooms for domain builders. Focused conversations without algorithmic noise.
+        </p>
+      </div>
+
+      <div class="editorial-grid" id="circles-grid">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Generic Add Modal for Ideas, Podcasts, Books, Notes -->
+  <div id="add-modal-backdrop" class="editorial-modal-backdrop" style="display: none;">
+    <div class="editorial-modal">
+      <h3 class="modal-title" id="modal-heading">+ CAPTURE CONTENT</h3>
+      <input type="text" id="modal-input-title" class="modal-input" placeholder="Title / Headline / Question">
+      <input type="text" id="modal-input-sub" class="modal-input" placeholder="Guest / Author / Source Link">
+      <textarea id="modal-input-text" class="modal-textarea" placeholder="Key takeaways, pull quote, or thoughts..."></textarea>
+      
+      <div style="display: flex; justify-content: flex-end; gap: 12px;">
+        <button class="btn-secondary" onclick="closeAddModal()">CANCEL</button>
+        <button class="btn-primary" onclick="submitModalContent()">PUBLISH & SYNC</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Intellectual Search Modal (Master Brief Section 26) -->
+  <div id="search-modal-backdrop" class="search-modal-backdrop" style="display: none;">
+    <div class="search-modal">
+      <div class="search-modal-header">
+        <span style="font-family: var(--font-mono); font-size: 11px; font-weight: 800; color: var(--acid-yellow);">✦ INTELLECTUAL SEARCH</span>
+        <button style="background: none; border: none; color: var(--warm-white); font-size: 16px; cursor: pointer; font-weight: 700;" onclick="closeSearchModal()">✕</button>
+      </div>
+
+      <input type="text" id="search-main-input" class="search-input-field" placeholder="Search people, conversations, ideas, books, circles..." autofocus>
+
+      <div class="search-breakdown-bar" id="search-breakdown-bar">
+        <span class="search-breakdown-badge" id="stat-convs">0 CONVERSATIONS</span>
+        <span class="search-breakdown-badge" id="stat-people">0 PEOPLE</span>
+        <span class="search-breakdown-badge" id="stat-ideas">0 IDEAS</span>
+        <span class="search-breakdown-badge" id="stat-books">0 BOOKS</span>
+        <span class="search-breakdown-badge" id="stat-events">0 EVENTS</span>
+        <span class="search-breakdown-badge" id="stat-circles">0 CIRCLES</span>
+      </div>
+
+      <div class="search-results-list" id="search-results-list">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Dark Media Player Modal: Watch / Listen / Read (Master Brief Sections 20, 21, 35, 36) -->
+  <div id="player-modal-backdrop" class="player-modal-backdrop" style="display: none;">
+    <div class="player-modal">
+      <div class="player-header">
+        <div class="player-mode-tabs">
+          <button class="player-mode-btn" id="player-btn-watch" onclick="setPlayerMode('watch')">▶ WATCH</button>
+          <button class="player-mode-btn active" id="player-btn-listen" onclick="setPlayerMode('listen')">🎧 LISTEN</button>
+          <button class="player-mode-btn" id="player-btn-read" onclick="setPlayerMode('read')">📄 READ TRANSCRIPT</button>
+        </div>
+        <button style="background: none; border: none; color: var(--warm-white); font-size: 18px; cursor: pointer; font-weight: 700;" onclick="closeMediaPlayer()">✕</button>
+      </div>
+
+      <div class="player-body">
+        <div class="player-title-display" id="player-title">WHY IS EVERYONE BUILDING THE SAME THING?</div>
+        <div class="player-meta-display" id="player-meta">CONVERSATION #042 · DEVANSH NAIR × MEERA SEN · 104 MIN</div>
+
+        <!-- Mode 1: Watch -->
+        <div id="player-mode-watch-view" style="display: none;">
+          <div style="background: #000; border: var(--border-default); aspect-ratio: 16/9; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; margin-bottom: 20px; overflow: hidden;">
+            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80" style="position: absolute; width: 100%; height: 100%; object-fit: cover; opacity: 0.35; filter: grayscale(50%) contrast(120%);" alt="Broadcast Backdrop">
+            <div style="z-index: 2; text-align: center; padding: 20px;">
+              <span class="tag-red" style="font-family: var(--font-mono); font-size: 11px; padding: 4px 10px; margin-bottom: 12px; display: inline-block;">4K BROADCAST STREAM</span>
+              <h3 style="font-family: var(--font-display); font-size: 28px; text-transform: uppercase;">NOW PLAYING: CHAPTER 02 — SOFTWARE MARGINS</h3>
+              <p style="font-family: var(--font-serif); font-size: 18px; font-style: italic; color: var(--warm-white); margin-top: 8px;">
+                "Software taught everyone zero marginal cost was divine. Atoms were abandoned."
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mode 2: Listen (Audio Interface) -->
+        <div id="player-mode-listen-view">
+          <div class="audio-interface-wrap">
+            <div class="scrubber-track" id="audio-scrubber" onclick="handleScrub(event)">
+              <div class="scrubber-fill" id="audio-scrubber-fill" style="width: 32%;"></div>
+            </div>
+            <div class="audio-time-row">
+              <span id="audio-current-time">33:17</span>
+              <span id="audio-total-time">104:00</span>
+            </div>
+            <div class="audio-controls-row">
+              <div style="display: flex; gap: 8px;">
+                <button class="ctrl-btn" onclick="skipAudio(-15)">⏪ -15s</button>
+                <button class="ctrl-btn" onclick="skipAudio(15)">+15s ⏩</button>
+              </div>
+
+              <button class="play-pause-btn" id="audio-play-pause-btn" onclick="toggleAudioPlay()">▶ PLAY</button>
+
+              <div class="speed-selector">
+                <span class="speed-pill active" onclick="setSpeed(1.0, this)">1.0x</span>
+                <span class="speed-pill" onclick="setSpeed(1.25, this)">1.25x</span>
+                <span class="speed-pill" onclick="setSpeed(1.5, this)">1.5x</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="chapters-container">
+            <div style="font-family: var(--font-mono); font-size: 11px; font-weight: 800; color: var(--muted-white); margin-bottom: 10px;">CHAPTERS:</div>
+            <div id="player-chapters-list">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Mode 3: Read (Highlighted Transcript) -->
+        <div id="player-mode-read-view" style="display: none;">
+          <div style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-family: var(--font-mono); font-size: 11px; font-weight: 800; color: var(--acid-yellow);">VERBATIM TRANSCRIPT ARCHIVE</span>
+            <span style="font-family: var(--font-mono); font-size: 11px; color: var(--muted-white);">CLICK '⚡ EXTRACT IDEA' TO CAPTURE</span>
+          </div>
+          <div class="transcript-flow" id="player-transcript-container">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <!-- Core Scripts -->
+  <script src="mqtt.min.js"></script>
+  <script src="peerjs.min.js"></script>
+  <script src="data.js"></script>
+  <script src="network.js"></script>
+  <script src="store.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
