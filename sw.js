@@ -1,13 +1,13 @@
 // sw.js - Service Worker for KHOJ App (Network-First Cache Strategy)
-const CACHE_NAME = 'khoj-cache-v4';
+const CACHE_NAME = 'khoj-cache-v5';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
-  './style.css?v=3.1',
-  './app.js?v=3.1',
-  './data.js?v=3.1',
-  './store.js?v=3.1',
-  './network.js?v=3.1',
+  './style.css?v=4.0',
+  './app.js?v=4.0',
+  './data.js?v=4.0',
+  './store.js?v=4.0',
+  './network.js?v=4.0',
   './mqtt.min.js',
   './peerjs.min.js',
   './manifest.json',

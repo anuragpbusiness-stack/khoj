@@ -2,37 +2,21 @@
 class SharedStore {
   constructor(network) {
     this.network = network;
-    this.storageKey = 'two_user_space_data_v1';
+    this.storageKey = 'two_user_space_data_v3';
     this.changeListeners = [];
     this.mqttClient = null;
     this.topic = null;
 
-    // Initial state template
+    // Initial state template - Clean pristine state
     this.state = {
       lastUpdated: 0,
-      feed: [
-        {
-          id: "feed_sample_1",
-          type: "PODCAST",
-          title: "The Molecular South - Fermentation Traditions",
-          body: "Key takeaway from Chapter 3: Ancient fermentation holds the blueprint for post-petroleum synthetic polymers.",
-          meta: "Kochi Bio-Vat Inquiry",
-          author: "Partner",
-          timestamp: Date.now() - 3600000 * 5
-        },
-        {
-          id: "feed_sample_2",
-          type: "BOOK",
-          title: "The Design of Everyday Things (by Don Norman)",
-          body: "Cognitive affordances dictate human trust before any marketing sentence is read.",
-          meta: "Recommended",
-          author: "You",
-          timestamp: Date.now() - 3600000 * 2
-        }
-      ],
+      feed: [],
       vision: [],
       podcasts: [],
-      books: []
+      books: [],
+      people: [],
+      events: [],
+      circles: []
     };
 
     this.loadLocal();
@@ -48,6 +32,10 @@ class SharedStore {
         if (parsed && typeof parsed === 'object') {
           this.state = { ...this.state, ...parsed };
         }
+      }
+      // Ensure all mock/sample IDs are purged
+      if (this.state.feed) {
+        this.state.feed = this.state.feed.filter(f => f.id && !f.id.startsWith('feed_sample_'));
       }
     } catch (e) {
       console.warn('Could not load local state:', e);
@@ -257,6 +245,90 @@ class SharedStore {
 
   removeFeedPost(id) {
     this.state.feed = (this.state.feed || []).filter(f => f.id !== id);
+    this.broadcastUpdate();
+  }
+
+  // People mutations
+  addPersonItem(name, role, quote, author = 'You') {
+    if (!this.state.people) this.state.people = [];
+    this.state.people.unshift({
+      id: 'person_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+      name: name || 'Unnamed Person',
+      role: role || 'Builder & Thinker',
+      quote: quote || '',
+      created: Date.now(),
+      author: author
+    });
+    this.logFeedUpload({
+      type: 'PERSON',
+      title: name || 'Unnamed Person',
+      body: quote || '',
+      meta: role || 'Builder Profile',
+      author: author
+    });
+    this.broadcastUpdate();
+  }
+
+  removePersonItem(id) {
+    this.state.people = (this.state.people || []).filter(p => p.id !== id);
+    this.broadcastUpdate();
+  }
+
+  // Events mutations
+  addEventItem(title, cityDate, desc, author = 'You') {
+    if (!this.state.events) this.state.events = [];
+    this.state.events.unshift({
+      id: 'ev_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+      title: title || 'Untitled Gathering',
+      city: cityDate || 'Location TBA',
+      date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }).toUpperCase(),
+      year: new Date().getFullYear().toString(),
+      venue: cityDate || 'TBA',
+      stats: 'Curated Gathering',
+      desc: desc || '',
+      created: Date.now(),
+      author: author
+    });
+    this.logFeedUpload({
+      type: 'EVENT',
+      title: title || 'Untitled Gathering',
+      body: desc || '',
+      meta: cityDate || 'Salon / Gathering',
+      author: author
+    });
+    this.broadcastUpdate();
+  }
+
+  removeEventItem(id) {
+    this.state.events = (this.state.events || []).filter(e => e.id !== id);
+    this.broadcastUpdate();
+  }
+
+  // Circles mutations
+  addCircleItem(name, domain, desc, author = 'You') {
+    if (!this.state.circles) this.state.circles = [];
+    this.state.circles.unshift({
+      id: 'circ_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+      name: name || 'Untitled Circle',
+      tag: domain || 'DOMAIN ROOM',
+      desc: desc || '',
+      members: '2 Members (Private)',
+      activeDiscussions: '1 Active Discussion',
+      created: Date.now(),
+      author: author
+    });
+    this.logFeedUpload({
+      type: 'CIRCLE',
+      title: name || 'Untitled Circle',
+      body: desc || '',
+      meta: domain || 'Private Circle',
+      author: author
+    });
+    this.broadcastUpdate();
+  }
+
+  removeCircleItem(id) {
+    this.state.circles = (this.state.circles || []).filter(c => c.id !== id);
     this.broadcastUpdate();
   }
 }

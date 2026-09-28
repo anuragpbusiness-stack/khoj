@@ -130,9 +130,9 @@ document.addEventListener('DOMContentLoaded', () => {
     renderPeople(store.state);
     renderAtomicIdeas(store.state);
     renderBooks(store.state);
-    renderEvents();
+    renderEvents(store.state);
     renderLiveIdeaWall(store.state);
-    renderCircles();
+    renderCircles(store.state);
   }
 
   store.onChange(() => {
@@ -239,8 +239,20 @@ function renderConversations(state) {
   const container = document.getElementById('conversations-archive-grid');
   if (!container) return;
 
-  const editorialConvs = window.INITIAL_EDITORIAL_DATA ? window.INITIAL_EDITORIAL_DATA.conversations : [];
+  const editorialConvs = (window.INITIAL_EDITORIAL_DATA && window.INITIAL_EDITORIAL_DATA.conversations) ? window.INITIAL_EDITORIAL_DATA.conversations : [];
   const userPodcasts = state.podcasts || [];
+
+  if (editorialConvs.length === 0 && userPodcasts.length === 0) {
+    container.innerHTML = `
+      <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--text-tertiary); background: var(--surface-1); border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 6px;">
+        <h4 style="font-family: var(--font-display); font-size: 24px; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; color: var(--text-primary);">NO CONVERSATIONS YET</h4>
+        <p style="font-family: var(--font-serif); font-size: 17px; font-style: italic; color: var(--text-secondary); max-width: 500px; margin: 0 auto;">
+          Click "+ SHARE PODCAST EPISODE" above to broadcast your first episode to your partner.
+        </p>
+      </div>
+    `;
+    return;
+  }
 
   const userHtml = userPodcasts.map(p => `
     <article class="conversation-card">
@@ -256,7 +268,7 @@ function renderConversations(state) {
         </div>
         <div class="card-footer-action">
           <span>ADDED: ${new Date(p.created).toLocaleDateString()}</span>
-          <button class="btn-primary" style="padding: 6px 14px; font-size: 13px;" onclick="openMediaPlayer('listen', '00:00', '${p.title}')">LISTEN</button>
+          <button class="btn-primary" style="padding: 6px 14px; font-size: 13px;" onclick="openMediaPlayer('listen', '00:00', '${p.title.replace(/'/g, "\\'")}')">LISTEN</button>
         </div>
       </div>
     </article>
@@ -278,7 +290,7 @@ function renderConversations(state) {
         </div>
         <div class="card-footer-action">
           <span>FEATURING: ${item.guests}</span>
-          <button class="btn-primary" style="padding: 6px 14px; font-size: 13px;" onclick="openMediaPlayer('listen', '00:00', '${item.title}', '${item.tag} #${item.number} · ${item.guests} · ${item.duration}')">LISTEN</button>
+          <button class="btn-primary" style="padding: 6px 14px; font-size: 13px;" onclick="openMediaPlayer('listen', '00:00', '${item.title.replace(/'/g, "\\'")}', '${item.tag} #${item.number} · ${item.guests} · ${item.duration}')">LISTEN</button>
         </div>
       </div>
     </article>
@@ -292,9 +304,40 @@ function renderPeople(state) {
   const container = document.getElementById('people-directory-grid');
   if (!container) return;
 
-  const people = window.INITIAL_EDITORIAL_DATA ? window.INITIAL_EDITORIAL_DATA.people : [];
+  const editorialPeople = (window.INITIAL_EDITORIAL_DATA && window.INITIAL_EDITORIAL_DATA.people) ? window.INITIAL_EDITORIAL_DATA.people : [];
+  const userPeople = state.people || [];
 
-  container.innerHTML = people.map(p => `
+  if (editorialPeople.length === 0 && userPeople.length === 0) {
+    container.innerHTML = `
+      <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--text-tertiary); background: var(--surface-1); border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 6px;">
+        <h4 style="font-family: var(--font-display); font-size: 24px; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; color: var(--text-primary);">NO PROFILES SAVED YET</h4>
+        <p style="font-family: var(--font-serif); font-size: 17px; font-style: italic; color: var(--text-secondary); max-width: 500px; margin: 0 auto;">
+          Click "+ ADD PERSON" above to capture high-signal builders, thinkers, or collaborators.
+        </p>
+      </div>
+    `;
+    return;
+  }
+
+  const userHtml = userPeople.map(p => `
+    <div class="person-poster">
+      <div class="person-cutout-wrap" style="height: 180px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.03);">
+        <span style="font-size: 48px; opacity: 0.7;">👤</span>
+        <span class="person-badge">${p.author ? p.author.toUpperCase() : 'SHARED'}</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-top: 14px;">
+        <h3 class="person-name" style="margin-top: 0;">${p.name}</h3>
+        <button style="background:none;border:none;color:var(--text-tertiary);cursor:pointer;font-weight:700;" onclick="deletePerson('${p.id}')">✕</button>
+      </div>
+      <div class="person-field">${p.role || 'BUILDER & THINKER'}</div>
+      ${p.quote ? `<div class="person-quote">"${p.quote}"</div>` : ''}
+      <div style="font-family: var(--font-mono); font-size: 11px; margin-top: auto; border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 10px; color: var(--deep-green);">
+        ● DUAL-SYNCED PROFILE
+      </div>
+    </div>
+  `).join('');
+
+  const editorialHtml = editorialPeople.map(p => `
     <div class="person-poster">
       <div class="person-cutout-wrap">
         <img src="${p.image}" alt="${p.name}">
@@ -306,10 +349,12 @@ function renderPeople(state) {
       
       <div style="font-family: var(--font-mono); font-size: 11px; margin-top: auto; border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 10px; color: var(--text-tertiary);">
         <div style="margin-bottom: 4px;"><b>FEATURED IN:</b> ${p.conversationsCount || 4} CONVERSATIONS · ${p.ideasCount || 12} IDEAS · ${p.eventsCount || 3} EVENTS</div>
-        <div><b>PROJECTS:</b> ${p.projects.join(', ')}</div>
+        <div><b>PROJECTS:</b> ${(p.projects || []).join(', ')}</div>
       </div>
     </div>
   `).join('');
+
+  container.innerHTML = userHtml + editorialHtml;
 }
 
 // 4. Atomic Ideas Render (Master Brief Section 22)
@@ -317,8 +362,20 @@ function renderAtomicIdeas(state) {
   const container = document.getElementById('atomic-ideas-grid');
   if (!container) return;
 
-  const ideas = window.INITIAL_EDITORIAL_DATA ? window.INITIAL_EDITORIAL_DATA.atomicIdeas : [];
+  const ideas = (window.INITIAL_EDITORIAL_DATA && window.INITIAL_EDITORIAL_DATA.atomicIdeas) ? window.INITIAL_EDITORIAL_DATA.atomicIdeas : [];
   const userIdeas = (state.vision || []).filter(v => v.category === 'Atomic Idea');
+
+  if (ideas.length === 0 && userIdeas.length === 0) {
+    container.innerHTML = `
+      <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--text-tertiary); background: var(--surface-1); border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 6px;">
+        <h4 style="font-family: var(--font-display); font-size: 24px; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; color: var(--text-primary);">NO ATOMIC IDEAS CAPTURED</h4>
+        <p style="font-family: var(--font-serif); font-size: 17px; font-style: italic; color: var(--text-secondary); max-width: 500px; margin: 0 auto;">
+          Click "+ CAPTURE ATOMIC IDEA" above to capture sharp truths or counter-intuitive principles.
+        </p>
+      </div>
+    `;
+    return;
+  }
 
   const userHtml = userIdeas.map((u, i) => `
     <div class="atomic-idea-card">
@@ -332,7 +389,7 @@ function renderAtomicIdeas(state) {
       </div>
       <div class="idea-footer">
         <span>Dual-synced live</span>
-        <button class="btn-secondary" style="padding: 4px 10px; font-size: 11px;" onclick="pinToWall('${u.title}', '${u.description}')">PIN TO WALL</button>
+        <button class="btn-secondary" style="padding: 4px 10px; font-size: 11px;" onclick="pinToWall('${u.title.replace(/'/g, "\\'")}', '${u.description.replace(/'/g, "\\'")}')">PIN TO WALL</button>
       </div>
     </div>
   `).join('');
@@ -349,7 +406,7 @@ function renderAtomicIdeas(state) {
       </div>
       <div class="idea-footer">
         <span>${idea.connections}</span>
-        <button class="btn-secondary" style="padding: 4px 10px; font-size: 11px;" onclick="pinToWall('${idea.title}', '${idea.quote}')">PIN TO WALL</button>
+        <button class="btn-secondary" style="padding: 4px 10px; font-size: 11px;" onclick="pinToWall('${idea.title.replace(/'/g, "\\'")}', '${idea.quote.replace(/'/g, "\\'")}')">PIN TO WALL</button>
       </div>
     </div>
   `).join('');
@@ -362,8 +419,20 @@ function renderBooks(state) {
   const container = document.getElementById('books-grid');
   if (!container) return;
 
-  const canonicalBooks = window.INITIAL_EDITORIAL_DATA ? window.INITIAL_EDITORIAL_DATA.books : [];
+  const canonicalBooks = (window.INITIAL_EDITORIAL_DATA && window.INITIAL_EDITORIAL_DATA.books) ? window.INITIAL_EDITORIAL_DATA.books : [];
   const userBooks = state.books || [];
+
+  if (canonicalBooks.length === 0 && userBooks.length === 0) {
+    container.innerHTML = `
+      <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--text-tertiary); background: var(--surface-1); border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 6px;">
+        <h4 style="font-family: var(--font-display); font-size: 24px; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; color: var(--text-primary);">NO BOOKS ADDED YET</h4>
+        <p style="font-family: var(--font-serif); font-size: 17px; font-style: italic; color: var(--text-secondary); max-width: 500px; margin: 0 auto;">
+          Click "+ ADD BOOK" above to log reading canon, highlights, and mental models.
+        </p>
+      </div>
+    `;
+    return;
+  }
 
   const userHtml = userBooks.map(b => `
     <div class="atomic-idea-card">
@@ -378,7 +447,7 @@ function renderBooks(state) {
       </div>
       <div class="idea-footer">
         <span>SHARED BY PARTNER</span>
-        <button class="btn-secondary" style="padding: 4px 10px; font-size: 11px;" onclick="pinToWall('${b.title}', '${b.notes}')">PIN TO WALL</button>
+        <button class="btn-secondary" style="padding: 4px 10px; font-size: 11px;" onclick="pinToWall('${b.title.replace(/'/g, "\\'")}', '${b.notes.replace(/'/g, "\\'")}')">PIN TO WALL</button>
       </div>
     </div>
   `).join('');
@@ -397,7 +466,7 @@ function renderBooks(state) {
       </div>
       <div class="idea-footer">
         <span>RECOMMENDED</span>
-        <button class="btn-secondary" style="padding: 4px 10px; font-size: 11px;" onclick="pinToWall('${b.title}', '${b.quote}')">PIN TO WALL</button>
+        <button class="btn-secondary" style="padding: 4px 10px; font-size: 11px;" onclick="pinToWall('${b.title.replace(/'/g, "\\'")}', '${b.quote.replace(/'/g, "\\'")}')">PIN TO WALL</button>
       </div>
     </div>
   `).join('');
@@ -406,12 +475,47 @@ function renderBooks(state) {
 }
 
 // 6. Events Posters Render (Digital Posters - Master Brief Section 25)
-function renderEvents() {
+function renderEvents(state) {
   const container = document.getElementById('events-posters-grid');
   if (!container) return;
 
-  const events = window.INITIAL_EDITORIAL_DATA ? window.INITIAL_EDITORIAL_DATA.events : [];
-  container.innerHTML = events.map(ev => `
+  const editorialEvents = (window.INITIAL_EDITORIAL_DATA && window.INITIAL_EDITORIAL_DATA.events) ? window.INITIAL_EDITORIAL_DATA.events : [];
+  const userEvents = (state && state.events) ? state.events : [];
+
+  if (editorialEvents.length === 0 && userEvents.length === 0) {
+    container.innerHTML = `
+      <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--text-tertiary); background: var(--surface-1); border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 6px;">
+        <h4 style="font-family: var(--font-display); font-size: 24px; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; color: var(--text-primary);">NO UPCOMING EVENTS</h4>
+        <p style="font-family: var(--font-serif); font-size: 17px; font-style: italic; color: var(--text-secondary); max-width: 500px; margin: 0 auto;">
+          Click "+ ADD EVENT" above to organize a salon, debate, or gathering for the two of you.
+        </p>
+      </div>
+    `;
+    return;
+  }
+
+  const userHtml = userEvents.map(ev => `
+    <div class="event-poster-card">
+      <div>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+          <div class="event-date-large">${ev.date || 'SOON'}</div>
+          <button style="background:none;border:none;color:var(--text-tertiary);cursor:pointer;font-weight:700;" onclick="deleteEvent('${ev.id}')">✕</button>
+        </div>
+        <div class="event-city-tag">${ev.city || 'LOCATION TBA'} · ${ev.year || new Date().getFullYear()}</div>
+        <h3 class="event-title-huge">${ev.title}</h3>
+        <div class="event-desc">"${ev.desc || ''}"</div>
+        <div style="font-family: var(--font-mono); font-size: 11px; color: var(--text-tertiary); margin-bottom: 14px;">
+          📍 ${ev.venue || 'TBA'}
+        </div>
+      </div>
+      <div class="event-stats-strip">
+        <span>${ev.stats || 'CURATED'}</span>
+        <button class="btn-primary" style="padding: 6px 14px; font-size: 12px;" onclick="window.AppAPI.showToast('🎟️ RSVP Confirmed for ${ev.title.replace(/'/g, "\\'")}')">ATTEND →</button>
+      </div>
+    </div>
+  `).join('');
+
+  const editorialHtml = editorialEvents.map(ev => `
     <div class="event-poster-card">
       <div>
         <div class="event-date-large">${ev.date}</div>
@@ -424,10 +528,12 @@ function renderEvents() {
       </div>
       <div class="event-stats-strip">
         <span>${ev.stats}</span>
-        <button class="btn-primary" style="padding: 6px 14px; font-size: 12px;" onclick="window.AppAPI.showToast('🎟️ RSVP Confirmed for ${ev.title}')">ATTEND →</button>
+        <button class="btn-primary" style="padding: 6px 14px; font-size: 12px;" onclick="window.AppAPI.showToast('🎟️ RSVP Confirmed for ${ev.title.replace(/'/g, "\\'")}')">ATTEND →</button>
       </div>
     </div>
   `).join('');
+
+  container.innerHTML = userHtml + editorialHtml;
 }
 
 // 7. Collaborative Live Idea Wall (Signature Interaction - Master Brief Section 32)
@@ -466,12 +572,45 @@ function renderLiveIdeaWall(state) {
 }
 
 // 8. Circles Render
-function renderCircles() {
+function renderCircles(state) {
   const container = document.getElementById('circles-grid');
   if (!container) return;
 
-  const circles = window.INITIAL_EDITORIAL_DATA ? window.INITIAL_EDITORIAL_DATA.circles : [];
-  container.innerHTML = circles.map(c => `
+  const editorialCircles = (window.INITIAL_EDITORIAL_DATA && window.INITIAL_EDITORIAL_DATA.circles) ? window.INITIAL_EDITORIAL_DATA.circles : [];
+  const userCircles = (state && state.circles) ? state.circles : [];
+
+  if (editorialCircles.length === 0 && userCircles.length === 0) {
+    container.innerHTML = `
+      <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--text-tertiary); background: var(--surface-1); border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 6px;">
+        <h4 style="font-family: var(--font-display); font-size: 24px; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; color: var(--text-primary);">NO CIRCLES CREATED</h4>
+        <p style="font-family: var(--font-serif); font-size: 17px; font-style: italic; color: var(--text-secondary); max-width: 500px; margin: 0 auto;">
+          Click "+ CREATE CIRCLE" above to establish a focused room or domain topic.
+        </p>
+      </div>
+    `;
+    return;
+  }
+
+  const userHtml = userCircles.map(c => `
+    <div class="conversation-card">
+      <div class="card-top-tag">
+        <span class="tag-badge">${c.tag}</span>
+        <button style="background:none;border:none;color:var(--text-tertiary);cursor:pointer;font-weight:700;" onclick="deleteCircle('${c.id}')">✕</button>
+      </div>
+      <div class="card-body">
+        <div>
+          <h3 class="card-title">${c.name}</h3>
+          <p class="card-desc">${c.desc}</p>
+        </div>
+        <div class="card-footer-action">
+          <span>${c.activeDiscussions || 'Active'}</span>
+          <button class="btn-primary" style="padding: 6px 14px; font-size: 13px;" onclick="window.AppAPI.showToast('Entered circle discussion!')">ENTER CIRCLE →</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  const editorialHtml = editorialCircles.map(c => `
     <div class="conversation-card">
       <div class="card-top-tag">
         <span class="tag-badge">${c.tag}</span>
@@ -489,6 +628,8 @@ function renderCircles() {
       </div>
     </div>
   `).join('');
+
+  container.innerHTML = userHtml + editorialHtml;
 }
 
 // Intellectual Search Implementation (Master Brief Section 26)
@@ -516,11 +657,11 @@ function performSearch(query) {
   const store = window.AppAPI ? window.AppAPI.store.state : {};
 
   const allConvs = [...(data ? data.conversations : []), ...(store.podcasts || [])];
-  const allPeople = data ? data.people : [];
+  const allPeople = [...(data ? data.people : []), ...(store.people || [])];
   const allIdeas = [...(data ? data.atomicIdeas : []), ...((store.vision || []).filter(v => v.category === 'Atomic Idea'))];
   const allBooks = [...(data ? data.books : []), ...(store.books || [])];
-  const allEvents = data ? (data.events || []) : [];
-  const allCircles = data ? data.circles : [];
+  const allEvents = [...(data ? (data.events || []) : []), ...(store.events || [])];
+  const allCircles = [...(data ? data.circles : []), ...(store.circles || [])];
 
   const matchedConvs = allConvs.filter(c => (c.title || '').toLowerCase().includes(q) || (c.summary || c.takeaways || '').toLowerCase().includes(q));
   const matchedPeople = allPeople.filter(p => (p.name || '').toLowerCase().includes(q) || (p.field || '').toLowerCase().includes(q) || (p.quote || '').toLowerCase().includes(q));
@@ -624,9 +765,16 @@ function openMediaPlayer(mode = 'listen', startChapter = '00:00', title = null, 
   const modal = document.getElementById('player-modal-backdrop');
   if (!modal) return;
 
-  const data = window.INITIAL_EDITORIAL_DATA.featuredStory;
+  const data = (window.INITIAL_EDITORIAL_DATA && window.INITIAL_EDITORIAL_DATA.featuredStory) || {
+    title: 'Episode Audio',
+    format: 'AUDIO',
+    guests: [],
+    duration: '00:00',
+    chapters: [],
+    transcript: []
+  };
   document.getElementById('player-title').textContent = title || data.title;
-  document.getElementById('player-meta').textContent = meta || `${data.format} · ${data.guests.map(g => g.name).join(' × ')} · ${data.duration}`;
+  document.getElementById('player-meta').textContent = meta || (data.guests && data.guests.length ? `${data.format} · ${data.guests.map(g => g.name).join(' × ')} · ${data.duration}` : 'AUDIO PLAYBACK');
 
   renderChaptersList(data.chapters, startChapter);
   renderTranscriptList(data.transcript);
@@ -798,6 +946,21 @@ function openAddModal(type) {
     title.placeholder = 'Idea Headline / Provocation';
     sub.placeholder = 'Source / Conversation / Context';
     text.placeholder = 'The atomic truth, insight, or counter-intuitive principle...';
+  } else if (type === 'person') {
+    heading.textContent = '+ ADD PERSON / PROFILE';
+    title.placeholder = 'Full Name';
+    sub.placeholder = 'Role / Craft / Domain (e.g. Robotics Architect)';
+    text.placeholder = 'Notable quote, philosophy, or key projects...';
+  } else if (type === 'event') {
+    heading.textContent = '+ ADD CANONICAL EVENT / SALON';
+    title.placeholder = 'Event Title (e.g. The Contrarian Salon)';
+    sub.placeholder = 'City / Location (e.g. New Delhi)';
+    text.placeholder = 'Theme, debate topic, or salon description...';
+  } else if (type === 'circle') {
+    heading.textContent = '+ CREATE DOMAIN CIRCLE';
+    title.placeholder = 'Circle Name (e.g. Hardware Builders)';
+    sub.placeholder = 'Domain Tag (e.g. DEEPTECH & CULTURE)';
+    text.placeholder = 'Charter, focus areas, and discussion norms...';
   } else {
     heading.textContent = '+ PIN NOTE TO LIVE WALL';
     title.placeholder = 'Note Title or Question';
@@ -836,6 +999,15 @@ function submitModalContent() {
   } else if (currentModalType === 'idea') {
     store.addVisionItem(title, text, 'Atomic Idea');
     window.AppAPI.showToast('💡 Atomic idea captured and synced live!');
+  } else if (currentModalType === 'person') {
+    store.addPersonItem(title, sub, text);
+    window.AppAPI.showToast('👤 Person profile created and synced live!');
+  } else if (currentModalType === 'event') {
+    store.addEventItem(title, sub, text);
+    window.AppAPI.showToast('📍 Event created and synced live!');
+  } else if (currentModalType === 'circle') {
+    store.addCircleItem(title, sub, text);
+    window.AppAPI.showToast('⭕ Circle established and synced live!');
   } else {
     store.addVisionItem(title, text, 'Wall Note');
     window.AppAPI.showToast('📌 Note pinned to Live Wall and synced live!');
@@ -868,6 +1040,21 @@ function deleteBook(id) {
 function deleteIdea(id) {
   window.AppAPI.store.removeVisionItem(id);
   window.AppAPI.showToast('Idea removed');
+}
+
+function deletePerson(id) {
+  window.AppAPI.store.removePersonItem(id);
+  window.AppAPI.showToast('Person removed');
+}
+
+function deleteEvent(id) {
+  window.AppAPI.store.removeEventItem(id);
+  window.AppAPI.showToast('Event removed');
+}
+
+function deleteCircle(id) {
+  window.AppAPI.store.removeCircleItem(id);
+  window.AppAPI.showToast('Circle removed');
 }
 
 // Download & Direct OS App Install Handler (Zero Modals, Zero Alerts)

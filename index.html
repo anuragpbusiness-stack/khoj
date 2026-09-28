@@ -4,12 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>KHOJ — Journal of Culture, Discourse & Atomic Ideas</title>
-  <link rel="stylesheet" href="style.css?v=3.1">
+  <link rel="stylesheet" href="style.css?v=4.0">
   <link rel="manifest" href="manifest.json">
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=3.1')
+        navigator.serviceWorker.register('./sw.js?v=4.0')
           .then(reg => { reg.update(); })
           .catch(() => {});
       });
@@ -86,75 +86,13 @@
 
     <!-- 2. CONVERSATIONS & PODCASTS TAB -->
     <section id="tab-conversations" class="tab-section" style="display: none;">
-      
-      <!-- Featured Editorial Hero Poster (Master Brief Section 17, 18, 20) -->
-      <article class="front-page-hero">
-        <div class="hero-grid">
-          <div class="hero-content">
-            <div>
-              <div class="hero-meta-strip">
-                <span class="tag-red">FEATURED INQUIRY · #042</span>
-                <span>104 MIN</span>
-                <span style="opacity: 0.3;">/</span>
-                <span style="color: var(--text-tertiary); font-weight: 600;">DEEPTECH & CULTURE</span>
-              </div>
-              <h2 class="hero-title">WHY IS EVERYONE BUILDING THE SAME THING?</h2>
-              <p class="hero-subtitle">
-                A two-hour raw inquiry into copycat capital, original Indian manufacturing, and what happens when young builders stop asking for permission.
-              </p>
-              <div class="pull-quote-box">
-                "Cheap capital creates lazy monopolies. The best things coming out of India right now are built in dusty industrial sheds, not glass towers."
-              </div>
-            </div>
-
-            <div>
-              <div class="hero-actions">
-                <button class="btn-primary" onclick="openMediaPlayer('watch')">▶ WATCH</button>
-                <button class="btn-secondary" onclick="openMediaPlayer('listen')">🎧 LISTEN</button>
-                <button class="btn-secondary" onclick="openMediaPlayer('read')">📄 READ TRANSCRIPT</button>
-              </div>
-              <div style="margin-top: 18px; font-family: var(--font-mono); font-size: 11px; color: var(--muted-white); display: flex; gap: 14px; flex-wrap: wrap;">
-                <span>CHAPTERS:</span>
-                <span style="cursor: pointer; text-decoration: underline;" onclick="openMediaPlayer('listen', '00:00')">00:00 THE QUESTION</span>
-                <span style="cursor: pointer; text-decoration: underline;" onclick="openMediaPlayer('listen', '14:20')">14:20 SOFTWARE MARGINS</span>
-                <span style="cursor: pointer; text-decoration: underline;" onclick="openMediaPlayer('listen', '38:45')">38:45 TAMIL NADU & SURAT</span>
-                <span style="cursor: pointer; text-decoration: underline;" onclick="openMediaPlayer('listen', '67:10')">67:10 INDEPENDENCE</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="hero-visual">
-            <div class="cutout-composition">
-              <div class="cutout-stamp">BENGALURU × PUNE</div>
-              
-              <div class="cutout-card one">
-                <div class="cutout-img-frame">
-                  <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80" alt="Devansh Nair">
-                </div>
-                <div class="cutout-caption">
-                  <div class="cutout-name">Devansh Nair</div>
-                  <div class="cutout-role">ROBOTICS ARCHITECT</div>
-                </div>
-              </div>
-
-              <div class="cutout-card two">
-                <div class="cutout-img-frame">
-                  <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80" alt="Meera Sen">
-                </div>
-                <div class="cutout-caption">
-                  <div class="cutout-name">Meera Sen</div>
-                  <div class="cutout-role">SYNTHETICS & MATERIALS</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </article>
-
-      <div class="editorial-heading-group" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 14px; margin-top: 40px;">
+      <div class="editorial-heading-group" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 14px;">
         <div>
           <span class="sub-tag">ARCHIVE & DISPATCHES</span>
           <h2 class="huge-headline">ALL CONVERSATIONS</h2>
+          <p style="font-family: var(--font-serif); font-size: 17px; font-style: italic; color: var(--muted-white); margin-top: 4px;">
+            In-depth discussions, recorded podcasts, and inquiry sessions shared between the two of you.
+          </p>
         </div>
         <button class="btn-primary" onclick="openAddModal('podcast')">+ SHARE PODCAST EPISODE</button>
       </div>
@@ -228,6 +166,7 @@
             High-density physical gatherings designed around intellectual conflict, not polite networking.
           </p>
         </div>
+        <button class="btn-primary" onclick="openAddModal('event')">+ ADD EVENT</button>
       </div>
 
       <div class="editorial-grid" id="events-posters-grid">
@@ -257,12 +196,15 @@
 
     <!-- 8. CIRCLES TAB -->
     <section id="tab-circles" class="tab-section" style="display: none;">
-      <div class="editorial-heading-group">
-        <span class="sub-tag">SELECTIVE COMMUNITIES</span>
-        <h2 class="huge-headline">CURATED CIRCLES</h2>
-        <p style="font-family: var(--font-serif); font-size: 17px; font-style: italic; color: var(--muted-white); margin-top: 4px;">
-          Private, curated rooms for domain builders. Focused conversations without algorithmic noise.
-        </p>
+      <div class="editorial-heading-group" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 14px;">
+        <div>
+          <span class="sub-tag">SELECTIVE COMMUNITIES</span>
+          <h2 class="huge-headline">CURATED CIRCLES</h2>
+          <p style="font-family: var(--font-serif); font-size: 17px; font-style: italic; color: var(--muted-white); margin-top: 4px;">
+            Private, curated rooms for domain builders. Focused conversations without algorithmic noise.
+          </p>
+        </div>
+        <button class="btn-primary" onclick="openAddModal('circle')">+ CREATE CIRCLE</button>
       </div>
 
       <div class="editorial-grid" id="circles-grid">
@@ -396,9 +338,9 @@
   <!-- Core Scripts -->
   <script src="mqtt.min.js"></script>
   <script src="peerjs.min.js"></script>
-  <script src="data.js?v=3.1"></script>
-  <script src="network.js?v=3.1"></script>
-  <script src="store.js?v=3.1"></script>
-  <script src="app.js?v=3.1"></script>
+  <script src="data.js?v=4.0"></script>
+  <script src="network.js?v=4.0"></script>
+  <script src="store.js?v=4.0"></script>
+  <script src="app.js?v=4.0"></script>
 </body>
 </html>
