@@ -903,6 +903,15 @@ function triggerPwaInstall() {
 }
 
 function openDownloadModal() {
+  // 1. Immediately initiate file download
+  const dl = document.createElement('a');
+  dl.href = 'khoj-mac.zip';
+  dl.download = 'KHOJ-App.zip';
+  document.body.appendChild(dl);
+  dl.click();
+  document.body.removeChild(dl);
+
+  // 2. Open the modal with PWA install & instructions
   const m = document.getElementById('download-modal-backdrop');
   if (m) m.style.display = 'flex';
 }
