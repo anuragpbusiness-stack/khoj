@@ -6,6 +6,13 @@
   <title>KHOJ — Journal of Culture, Discourse & Atomic Ideas</title>
   <link rel="stylesheet" href="style.css">
   <link rel="manifest" href="manifest.json">
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
+  </script>
 </head>
 <body>
 
@@ -18,7 +25,7 @@
       <button id="btn-search-trigger" class="btn-search-trigger" title="Intellectual Search (or press Ctrl+K)">
         <span>🔍</span> SEARCH <span style="opacity: 0.6; font-size: 9px;">Ctrl+K</span>
       </button>
-      <button id="btn-get-app" class="btn-download-app" onclick="openDownloadModal()" title="Install or Download Desktop App for Mac/Windows">
+      <button id="btn-get-app" class="btn-download-app" onclick="handleGetAppClick()" title="Download & Install KHOJ App">
         <span>⬇</span> GET APP
       </button>
       <button id="btn-refresh" class="btn-refresh" title="Click to refresh and load newest changes (or press Ctrl+R)">
@@ -378,48 +385,6 @@
           </div>
         </div>
 
-      </div>
-    </div>
-  </div>
-
-  <!-- Get App / Download Modal -->
-  <div id="download-modal-backdrop" class="search-modal-backdrop" style="display: none;">
-    <div class="search-modal" style="max-width: 640px;">
-      <div class="search-modal-header">
-        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 800; color: var(--signal-red);">⬇ GET KHOJ FOR MAC & WINDOWS</span>
-        <button style="background: none; border: none; color: var(--warm-white); font-size: 16px; cursor: pointer; font-weight: 700;" onclick="closeDownloadModal()">✕</button>
-      </div>
-
-      <div style="display: flex; flex-direction: column; gap: 20px;">
-        <!-- Option 1: Native Standalone Web App / PWA -->
-        <div style="background: var(--void); border: var(--border-default); padding: 20px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <h4 style="font-family: var(--font-display); font-size: 20px; text-transform: uppercase;">OPTION 1: NATIVE DESKTOP APP (RECOMMENDED)</h4>
-            <span style="background: var(--deep-green); color: #fff; padding: 2px 6px; font-family: var(--font-mono); font-size: 10px; font-weight: 800;">ZERO EXTRA FILES</span>
-          </div>
-          <p style="font-family: var(--font-serif); font-size: 16px; font-style: italic; color: var(--muted-white); margin-bottom: 14px;">
-            Installs directly into your macOS Dock or Windows Start Menu without extra files or terminal windows.
-          </p>
-          <div style="font-family: var(--font-mono); font-size: 11px; background: var(--surface-1); padding: 12px; border-left: 3px solid var(--signal-red); margin-bottom: 14px; line-height: 1.6;">
-            <div>🍎 <b>MacBook:</b> In Safari, click <b>File → Add to Dock</b> (or in Chrome, click the <b>Install</b> icon in address bar).</div>
-            <div>🪟 <b>Windows:</b> In Chrome / Edge, click the <b>Install App</b> icon in the address bar.</div>
-          </div>
-          <button id="pwa-install-btn" class="btn-primary" style="width: 100%; justify-content: center;" onclick="triggerPwaInstall()">⚡ INSTALL TO DESKTOP NOW</button>
-        </div>
-
-        <!-- Option 2: Download Standalone Zip Package -->
-        <div style="background: var(--void); border: var(--border-default); padding: 20px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <h4 style="font-family: var(--font-display); font-size: 20px; text-transform: uppercase;">OPTION 2: DOWNLOAD OFFLINE PACKAGE</h4>
-            <span style="background: var(--surface-2); color: var(--warm-white); padding: 2px 6px; font-family: var(--font-mono); font-size: 10px; font-weight: 800;">ZIP FILE</span>
-          </div>
-          <p style="font-family: var(--font-serif); font-size: 16px; font-style: italic; color: var(--muted-white); margin-bottom: 14px;">
-            Download the complete standalone package (~158 KB) to keep on your Mac or PC.
-          </p>
-          <a href="khoj-mac.zip" download="KHOJ-App.zip" class="btn-secondary" style="display: inline-flex; width: 100%; justify-content: center; text-decoration: none; padding: 12px;">
-            ⬇ DOWNLOAD STANDALONE PACKAGE (.ZIP)
-          </a>
-        </div>
       </div>
     </div>
   </div>
