@@ -4,10 +4,10 @@
    - Crisp High-Legibility Off-White (#EDEDED) & Refined Silver Muted (#A1A1AA)
    - Micro-Borders: 1px solid rgba(255, 255, 255, 0.08)
    - Zero Blocky Neo-Brutalist 3D Drop Shadows -> Pure Flat Minimalist Surfaces with Ambient Depth
-   - Refined Typography: Anton for architectural titles, Instrument Serif for dispatches & quotes, Inter for crisp UI, JetBrains Mono for system metadata
+   - Refined Typography: Space Grotesk for architectural titles, Instrument Serif for dispatches & quotes, Inter for crisp UI, JetBrains Mono for system metadata
 */
 
-@import url('https://fonts.googleapis.com/css2?family=Anton&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 :root {
   /* Minimal Dark Foundation */
@@ -50,7 +50,7 @@
   --muted-purple: #a855f7;
 
   /* Typography */
-  --font-display: 'Anton', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: 'Space Grotesk', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-serif: 'Instrument Serif', Georgia, serif;
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
@@ -235,12 +235,12 @@ body {
 
 .brand-title {
   font-family: var(--font-display);
-  font-size: clamp(48px, 8vw, 84px);
-  line-height: 0.9;
-  letter-spacing: 6px;
+  font-size: clamp(38px, 6vw, 68px);
+  line-height: 1;
+  letter-spacing: 12px;
   text-transform: uppercase;
   color: var(--text-primary);
-  font-weight: 400;
+  font-weight: 700;
 }
 
 .brand-star {
@@ -352,10 +352,11 @@ body {
 
 .huge-headline {
   font-family: var(--font-display);
-  font-size: clamp(36px, 5.5vw, 68px);
-  line-height: 0.92;
+  font-size: clamp(30px, 4.5vw, 48px);
+  line-height: 1.1;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: -0.01em;
+  font-weight: 700;
   color: var(--text-primary);
 }
 
@@ -462,9 +463,11 @@ body {
 
 .hero-title {
   font-family: var(--font-display);
-  font-size: clamp(38px, 4.5vw, 68px);
-  line-height: 0.92;
+  font-size: clamp(30px, 4vw, 52px);
+  line-height: 1.1;
   text-transform: uppercase;
+  letter-spacing: -0.01em;
+  font-weight: 700;
   margin-bottom: 18px;
   color: var(--text-primary);
 }
@@ -712,11 +715,12 @@ body {
 
 .card-title {
   font-family: var(--font-display);
-  font-size: 24px;
-  line-height: 1.05;
+  font-size: 20px;
+  line-height: 1.25;
   text-transform: uppercase;
   margin-bottom: 10px;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.2px;
+  font-weight: 700;
   color: var(--text-primary);
 }
 
@@ -800,11 +804,12 @@ body {
 
 .person-name {
   font-family: var(--font-display);
-  font-size: 22px;
-  line-height: 1;
+  font-size: 20px;
+  line-height: 1.2;
   text-transform: uppercase;
   margin-bottom: 4px;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.2px;
+  font-weight: 700;
   color: var(--text-primary);
 }
 
@@ -876,11 +881,12 @@ body {
 
 .idea-title {
   font-family: var(--font-display);
-  font-size: 22px;
-  line-height: 1.05;
+  font-size: 20px;
+  line-height: 1.25;
   text-transform: uppercase;
   margin-bottom: 10px;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.2px;
+  font-weight: 700;
   color: var(--text-primary);
 }
 
@@ -1006,18 +1012,21 @@ body {
 
 .event-date-large {
   font-family: var(--font-display);
-  font-size: 38px;
-  line-height: 0.95;
-  letter-spacing: 0.5px;
+  font-size: 32px;
+  line-height: 1.05;
+  letter-spacing: 0.2px;
+  font-weight: 700;
   margin-bottom: 6px;
   color: var(--text-primary);
 }
 
 .event-title-huge {
   font-family: var(--font-display);
-  font-size: 26px;
-  line-height: 1.05;
+  font-size: 23px;
+  line-height: 1.2;
   text-transform: uppercase;
+  letter-spacing: 0.2px;
+  font-weight: 700;
   margin-bottom: 10px;
   color: var(--text-primary);
 }
@@ -1083,11 +1092,12 @@ body {
 
 .modal-title {
   font-family: var(--font-display);
-  font-size: 26px;
+  font-size: 23px;
   text-transform: uppercase;
   margin-bottom: 20px;
-  line-height: 1;
-  letter-spacing: 0.5px;
+  line-height: 1.15;
+  letter-spacing: 0.2px;
+  font-weight: 700;
   color: var(--text-primary);
 }
 
@@ -1295,9 +1305,10 @@ body {
 
 .player-title-display {
   font-family: var(--font-display);
-  font-size: 28px;
-  line-height: 1;
-  letter-spacing: 0.5px;
+  font-size: 25px;
+  line-height: 1.15;
+  letter-spacing: 0.2px;
+  font-weight: 700;
   text-transform: uppercase;
   margin-bottom: 6px;
   color: var(--text-primary);
