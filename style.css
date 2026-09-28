@@ -66,14 +66,14 @@ body::before {
   top: 0; left: 0; width: 100vw; height: 100vh;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.035'/%3E%3C/svg%3E");
   pointer-events: none;
-  z-index: 9999;
+  z-index: 1;
 }
 
 /* System Masthead */
 .system-masthead {
   background: var(--void);
   border-bottom: var(--border-default);
-  padding: 8px 20px;
+  padding: 6px 18px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -82,15 +82,27 @@ body::before {
   font-weight: 700;
   letter-spacing: 0.5px;
   text-transform: uppercase;
-  z-index: 100;
+  z-index: 10001;
   position: sticky;
   top: 0;
+  white-space: nowrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  min-height: 38px;
+  box-sizing: border-box;
+}
+
+.system-masthead::-webkit-scrollbar {
+  display: none;
 }
 
 .system-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .issue-tag {
@@ -103,7 +115,9 @@ body::before {
 .system-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .btn-refresh {
@@ -171,6 +185,7 @@ body::before {
   border: var(--border-default);
   padding: 3px 9px;
   color: var(--warm-white);
+  flex-shrink: 0;
 }
 
 .live-dot {
@@ -179,13 +194,7 @@ body::before {
   border-radius: 50%;
   background: var(--deep-green);
   display: inline-block;
-  animation: livePulse 1.8s infinite;
-}
-
-@keyframes livePulse {
-  0% { transform: scale(0.9); opacity: 0.8; }
-  50% { transform: scale(1.2); opacity: 1; }
-  100% { transform: scale(0.9); opacity: 0.8; }
+  flex-shrink: 0;
 }
 
 .partner-dot {
@@ -193,6 +202,10 @@ body::before {
   height: 7px;
   border-radius: 50%;
   display: inline-block;
+  flex-shrink: 0;
+  background: var(--deep-green);
+  margin-right: 2px;
+}
   background: var(--deep-green);
   margin-right: 2px;
 }

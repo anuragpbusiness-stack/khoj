@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
   network.onStatus((status, details) => {
     switch (status) {
       case 'connecting':
-        if (syncStatusText) syncStatusText.textContent = 'CONNECTING...';
+        if (syncStatusText) syncStatusText.textContent = 'FEED SYNCED';
         break;
       case 'waiting':
         if (syncStatusText) syncStatusText.textContent = 'FEED SYNCED';
