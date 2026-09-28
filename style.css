@@ -127,6 +127,27 @@ body::before {
   border-color: var(--warm-white);
 }
 
+.btn-download-app {
+  background: var(--signal-red);
+  color: #FFFFFF;
+  border: 1px solid var(--signal-red);
+  padding: 3px 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 2px 2px 0px var(--pure-black);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.1s ease;
+}
+
+.btn-download-app:hover {
+  background: #FF5A54;
+  border-color: #FF5A54;
+}
+
 .refresh-icon {
   font-size: 12px;
   font-weight: 900;

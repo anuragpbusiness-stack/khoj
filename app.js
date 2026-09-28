@@ -880,3 +880,35 @@ function deleteIdea(id) {
   window.AppAPI.store.removeVisionItem(id);
   window.AppAPI.showToast('Idea removed');
 }
+
+// Download & PWA Install Handlers
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  const pwaBtn = document.getElementById('pwa-install-btn');
+  if (pwaBtn) pwaBtn.style.display = 'inline-flex';
+});
+
+function triggerPwaInstall() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(() => {
+      deferredPrompt = null;
+      closeDownloadModal();
+    });
+  } else {
+    alert('To install KHOJ:\n• On Mac Safari: Click "File" > "Add to Dock"\n• On Chrome/Edge: Click the Install icon in the address bar.');
+  }
+}
+
+function openDownloadModal() {
+  const m = document.getElementById('download-modal-backdrop');
+  if (m) m.style.display = 'flex';
+}
+
+function closeDownloadModal() {
+  const m = document.getElementById('download-modal-backdrop');
+  if (m) m.style.display = 'none';
+}
+
