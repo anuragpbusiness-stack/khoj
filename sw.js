@@ -1,5 +1,5 @@
 // sw.js - Service Worker for KHOJ App (Network-First Cache Strategy)
-const CACHE_NAME = 'khoj-cache-v9';
+const CACHE_NAME = 'khoj-cache-v10';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',

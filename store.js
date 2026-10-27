@@ -65,10 +65,8 @@ class SharedStore {
   }
 
   canDelete(item) {
-    if (!item) return false;
-    const myUid = this.getUserId();
-    // Only the user who created/uploaded this item can remove it
-    return !item.ownerId || item.ownerId === myUid;
+    // Both partners share a private space — either user can delete any item
+    return true;
   }
 
   onChange(listener) {

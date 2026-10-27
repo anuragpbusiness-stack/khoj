@@ -445,7 +445,7 @@ function renderAtomicIdeas(state) {
       <div>
         <div class="idea-header">
           <span class="idea-badge ${isOwner ? '' : 'partner'}">${isOwner ? 'YOUR ATOMIC IDEA' : 'PARTNER IDEA'}</span>
-          ${isOwner ? `<button style="background:none;border:none;cursor:pointer;color:var(--text-tertiary);font-weight:700;" onclick="deleteIdea('${u.id}')" title="Delete your idea">✕</button>` : ''}
+          <button style="background:none;border:none;cursor:pointer;color:#ff453a;font-weight:700;font-size:15px;" onclick="deleteIdea('${u.id}')" title="Delete idea">✕</button>
         </div>
         <h3 class="idea-title">${u.title}</h3>
         <div class="idea-quote">"${u.description}"</div>
